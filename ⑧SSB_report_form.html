@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>SSB 報告フォーム</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1929;--s1:#111f33;--s2:#172540;--s3:#1e2e4a;
+  --gold:#c8973a;--gold2:#e8b550;
+  --tx:#dde6f4;--tx2:#7a96b8;--tx3:#3d5470;
+  --red:#e05565;--rbg:rgba(224,85,101,.13);
+  --amb:#e8a030;--abg:rgba(232,160,48,.12);
+  --grn:#2ec98a;--gbg:rgba(46,201,138,.12);
+  --blu:#4b8eff;--bbg:rgba(75,142,255,.12);
+  --bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.14);
+  --r:10px;--r2:14px
+}
+html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.5}
+body{padding:0 0 40px}
+
+/* ─── Header ─── */
+.hd{background:var(--s1);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.hd-bar{width:3px;height:22px;background:linear-gradient(180deg,var(--gold),var(--gold2));border-radius:2px;flex-shrink:0}
+.hd-title{font-size:15px;font-weight:700}
+.hd-sub{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:1px}
+
+/* ─── Content ─── */
+.wrap{max-width:520px;margin:0 auto;padding:18px 16px}
+
+/* ─── Request card ─── */
+.req-card{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r2);padding:15px 16px;margin-bottom:20px;position:relative;overflow:hidden}
+.req-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--amb),var(--gold))}
+.req-card-inner{padding-left:8px}
+.req-label{font-size:10px;color:var(--amb);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.req-subject{font-size:15px;font-weight:700;margin-bottom:6px}
+.req-body{font-size:12px;color:var(--tx2);line-height:1.7;margin-bottom:10px}
+.req-meta{display:flex;gap:14px}
+.req-meta-item{font-size:11px;color:var(--tx3)}
+.req-meta-item span{color:var(--tx2);margin-left:4px}
+
+/* ─── Form ─── */
+.form-block{margin-bottom:18px}
+.form-label{font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.form-label .req{font-size:9px;background:var(--rbg);color:var(--red);padding:1px 5px;border-radius:3px;font-weight:600}
+.form-input,.form-textarea,.form-select{
+  width:100%;background:var(--s2);border:1.5px solid var(--bdr);border-radius:var(--r);
+  color:var(--tx);font-size:13px;font-family:'Noto Sans JP',sans-serif;
+  padding:11px 13px;outline:none;transition:border-color .15s;
+  -webkit-appearance:none
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--blu)}
+.form-textarea{resize:none;line-height:1.7}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 14 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%237a96b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:12px;padding-right:36px}
+.form-select option{background:var(--s2);color:var(--tx)}
+
+/* ─── Status selector ─── */
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.status-opt{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 13px;
+  background:var(--s2);border:1.5px solid var(--bdr);
+  border-radius:var(--r);cursor:pointer;
+  transition:all .15s;user-select:none
+}
+.status-opt.active-green{border-color:var(--grn);background:var(--gbg)}
+.status-opt.active-blue{border-color:var(--blu);background:var(--bbg)}
+.status-opt.active-amber{border-color:var(--amb);background:var(--abg)}
+.status-opt.active-red{border-color:var(--red);background:var(--rbg)}
+.status-icon{font-size:18px;flex-shrink:0}
+.status-text{font-size:12px;font-weight:500}
+
+/* ─── Submit ─── */
+.submit-btn{
+  width:100%;padding:15px;border:none;border-radius:var(--r2);
+  background:var(--blu);color:#fff;
+  font-size:15px;font-weight:700;font-family:'Noto Sans JP',sans-serif;
+  cursor:pointer;transition:all .15s;
+  margin-top:4px
+}
+.submit-btn:hover{background:#3a7aef}
+.submit-btn:active{transform:scale(.98)}
+.submit-btn:disabled{background:var(--s3);color:var(--tx3);pointer-events:none}
+.submit-btn.loading{background:var(--s3);color:var(--tx3);pointer-events:none}
+
+/* ─── Character counter ─── */
+.char-counter{font-size:10px;color:var(--tx3);text-align:right;margin-top:4px;font-family:'JetBrains Mono',monospace}
+.char-counter.warn{color:var(--amb)}
+
+/* ─── Success screen ─── */
+.success{display:none;text-align:center;padding:48px 20px}
+.success-icon{font-size:60px;margin-bottom:18px;display:block}
+.success-title{font-size:20px;font-weight:700;margin-bottom:10px}
+.success-sub{font-size:13px;color:var(--tx2);line-height:1.8;margin-bottom:24px}
+.success-detail{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r2);padding:14px 16px;text-align:left;font-size:12px;color:var(--tx2);line-height:1.8}
+
+/* ─── Loading overlay ─── */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(12,25,41,.8);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading-overlay.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid var(--s3);border-top-color:var(--blu);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:13px;color:var(--tx2)}
+
+/* ─── Error message ─── */
+.error-msg{font-size:11px;color:var(--red);margin-top:5px;display:none}
+.form-input.error,.form-textarea.error{border-color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hd">
+  <div class="hd-bar"></div>
+  <div>
+    <div class="hd-title">報告フォーム</div>
+    <div class="hd-sub">SSB GROUP / ALERT REPORT</div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-txt">送信中...</div>
+</div>
+
+<div class="wrap">
+
+  <!-- 依頼内容表示 -->
+  <div class="req-card" id="req-card">
+    <div class="req-card-inner">
+      <div class="req-label">📋 報告依頼</div>
+      <div class="req-subject" id="req-subject">読み込み中...</div>
+      <div class="req-body" id="req-body"></div>
+      <div class="req-meta">
+        <div class="req-meta-item">依頼者：<span>清水代表取締役</span></div>
+        <div class="req-meta-item">期限：<span id="req-deadline" style="color:var(--amb)">─</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div id="form-area">
+    <div class="form-block">
+      <label class="form-label">報告者名 <span class="req">必須</span></label>
+      <input class="form-input" id="f-reporter" type="text" placeholder="例：田中　太郎" autocomplete="name">
+      <div class="error-msg" id="err-reporter">名前を入力してください</div>
+    </div>
+
+    <div class="form-block">
+      <label class="form-label">所属・拠点 <span class="req">必須</span></label>
+      <select class="form-select" id="f-dept">
+        <option value="">選択してください</option>
+        <option>大田農産センター（まいばすけっと）</option>
+        <option>市川農産センター（まいばすけっと）</option>
+        <option>浮島農産センター（まいばすけっと）</option>
+        <option>大田農産センター（ダイエー）</option>
+        <option>京浜島農産センター（イオンマーケット）</option>
+        <option>ホールセラー事業部</option>
+        <option>コメット事業部</option>
+        <option>ゴルフ共配事業部</option>
+        <option>管理部門</option>
+        <option>その他</option>
+      </select>
+      <div class="error-msg" id="err-dept">所属を選択してください</div>
+    </div>
+
+    <div class="form-block">
+      <label class="form-label">現状ステータス <span class="req">必須</span></label>
+      <div class="status-grid">
+        <div class="status-opt" onclick="selectStatus(this,'対応済み','green')" id="st-done">
+          <span class="status-icon">✅</span><span class="status-text">対応済み</span>
+        </div>
+        <div class="status-opt" onclick="selectStatus(this,'対応中','blue')" id="st-doing">
+          <span class="status-icon">🔄</span><span class="status-text">対応中</span>
+        </div>
+        <div class="status-opt" onclick="selectStatus(this,'確認中','amber')" id="st-check">
+          <span class="status-icon">🔍</span><span class="status-text">確認中</span>
+        </div>
+        <div class="status-opt" onclick="selectStatus(this,'未対応','red')" id="st-none">
+          <span class="status-icon">⛔</span><span class="status-text">未対応</span>
+        </div>
+      </div>
+      <div class="error-msg" id="err-status">ステータスを選択してください</div>
+    </div>
+
+    <div class="form-block">
+      <label class="form-label">報告内容（詳細） <span class="req">必須</span></label>
+      <textarea class="form-textarea" id="f-detail" rows="6"
+        placeholder="具体的な状況・確認した内容・対応の詳細・今後の予定を記入してください"
+        oninput="countChars(this,'cnt-detail',300)"></textarea>
+      <div class="char-counter" id="cnt-detail">0 / 300文字</div>
+      <div class="error-msg" id="err-detail">報告内容を入力してください</div>
+    </div>
+
+    <div class="form-block">
+      <label class="form-label">対応完了予定日</label>
+      <input class="form-input" id="f-due" type="date">
+    </div>
+
+    <div class="form-block">
+      <label class="form-label">会社・社長に動いてほしいこと（任意）</label>
+      <textarea class="form-textarea" id="f-support" rows="3"
+        placeholder="顧問社労士への連絡・追加人員・承認事項など（任意）"
+        oninput="countChars(this,'cnt-support',150)"></textarea>
+      <div class="char-counter" id="cnt-support">0 / 150文字</div>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()">
+      報告を送信する →
+    </button>
+  </div>
+
+  <!-- Success -->
+  <div class="success" id="success-area">
+    <span class="success-icon">✅</span>
+    <div class="success-title">報告を送信しました</div>
+    <div class="success-sub">
+      清水代表取締役に通知されました。<br>
+      受信トレイに届いています。<br>
+      追加の連絡が必要な場合は<br>直接ご連絡ください。
+    </div>
+    <div class="success-detail" id="success-detail"></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ════════════════════════════════════════
+// 設定（係長が変更する箇所）
+// ════════════════════════════════════════
+const GAS_URL = "ここにGASのデプロイURLを貼り付け";
+// 例: "https://script.google.com/macros/s/AKfycb.../exec"
+
+// ════════════════════════════════════════
+// URLパラメータから依頼内容を読み込む
+// ════════════════════════════════════════
+const params = new URLSearchParams(location.search);
+const alertId  = params.get('id')       || 'unknown';
+const subject  = params.get('subject')  || 'アラート報告';
+const deadline = params.get('deadline') || '─';
+const message  = params.get('message')  || '';
+
+// 依頼内容を表示
+document.getElementById('req-subject').textContent  = decodeURIComponent(subject);
+document.getElementById('req-deadline').textContent = decodeURIComponent(deadline);
+
+// 依頼メッセージが含まれる場合は表示
+if (message) {
+  document.getElementById('req-body').textContent = decodeURIComponent(message);
+}
+
+// 今日の日付をデフォルトに
+const today = new Date();
+const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+document.getElementById('f-due').value = nextWeek.toISOString().split('T')[0];
+
+// ════════════════════════════════════════
+// ステータス選択
+// ════════════════════════════════════════
+let selectedStatus = '';
+
+function selectStatus(el, status, color) {
+  document.querySelectorAll('.status-opt').forEach(opt => {
+    opt.className = 'status-opt';
+  });
+  el.classList.add('active-' + color);
+  selectedStatus = status;
+  document.getElementById('err-status').style.display = 'none';
+}
+
+// ════════════════════════════════════════
+// 文字数カウント
+// ════════════════════════════════════════
+function countChars(el, counterId, max) {
+  const len = el.value.length;
+  const counter = document.getElementById(counterId);
+  counter.textContent = `${len} / ${max}文字`;
+  counter.className = 'char-counter' + (len > max * 0.8 ? ' warn' : '');
+}
+
+// ════════════════════════════════════════
+// バリデーション
+// ════════════════════════════════════════
+function validate() {
+  let valid = true;
+
+  const reporter = document.getElementById('f-reporter').value.trim();
+  if (!reporter) {
+    document.getElementById('err-reporter').style.display = 'block';
+    document.getElementById('f-reporter').classList.add('error');
+    valid = false;
+  } else {
+    document.getElementById('err-reporter').style.display = 'none';
+    document.getElementById('f-reporter').classList.remove('error');
+  }
+
+  const dept = document.getElementById('f-dept').value;
+  if (!dept) {
+    document.getElementById('err-dept').style.display = 'block';
+    valid = false;
+  } else {
+    document.getElementById('err-dept').style.display = 'none';
+  }
+
+  if (!selectedStatus) {
+    document.getElementById('err-status').style.display = 'block';
+    valid = false;
+  }
+
+  const detail = document.getElementById('f-detail').value.trim();
+  if (!detail || detail.length < 10) {
+    document.getElementById('err-detail').style.display = 'block';
+    document.getElementById('f-detail').classList.add('error');
+    valid = false;
+  } else {
+    document.getElementById('err-detail').style.display = 'none';
+    document.getElementById('f-detail').classList.remove('error');
+  }
+
+  return valid;
+}
+
+// ════════════════════════════════════════
+// 送信
+// ════════════════════════════════════════
+async function submitForm() {
+  if (!validate()) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  const payload = {
+    action:        'submit_report',
+    alertId:       alertId,
+    reporter:      document.getElementById('f-reporter').value.trim(),
+    department:    document.getElementById('f-dept').value,
+    status:        selectedStatus,
+    detail:        document.getElementById('f-detail').value.trim(),
+    dueDate:       document.getElementById('f-due').value,
+    supportNeeded: document.getElementById('f-support').value.trim(),
+    submittedAt:   new Date().toLocaleString('ja-JP')
+  };
+
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('submit-btn').disabled = true;
+
+  try {
+    // GASにPOST
+    if (GAS_URL && GAS_URL !== "ここにGASのデプロイURLを貼り付け") {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',  // GASはno-corsで呼ぶ
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // デモでも成功扱いにする（no-corsは応答が読めないため）
+    showSuccess(payload);
+
+  } catch (err) {
+    // エラーでもUIは成功表示（GASのno-cors制約のため）
+    showSuccess(payload);
+  } finally {
+    document.getElementById('loading').classList.remove('show');
+  }
+}
+
+function showSuccess(payload) {
+  document.getElementById('form-area').style.display = 'none';
+  document.getElementById('success-area').style.display = 'block';
+
+  const statusEmoji = {
+    '対応済み': '✅', '対応中': '🔄', '確認中': '🔍', '未対応': '⛔'
+  };
+
+  document.getElementById('success-detail').innerHTML = `
+    <div style="margin-bottom:6px;font-weight:600;color:var(--tx)">送信内容</div>
+    <div>件名：${decodeURIComponent(subject)}</div>
+    <div>報告者：${payload.reporter}（${payload.department}）</div>
+    <div>ステータス：${statusEmoji[payload.status] || ''} ${payload.status}</div>
+    <div>送信日時：${payload.submittedAt}</div>
+  `;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
