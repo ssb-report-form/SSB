@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>SSB Cockpit</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1929;--s1:#111f33;--s2:#172540;--s3:#1e2e4a;
+  --gold:#c8973a;--gold2:#e8b550;
+  --tx:#dde6f4;--tx2:#7a96b8;--tx3:#3d5470;
+  --red:#e05565;--rbg:rgba(224,85,101,.13);
+  --amb:#e8a030;--abg:rgba(232,160,48,.12);
+  --grn:#2ec98a;--gbg:rgba(46,201,138,.12);
+  --blu:#4b8eff;--bbg:rgba(75,142,255,.12);
+  --pur:#9b70ff;--pbg:rgba(155,112,255,.12);
+  --tel:#2ec4b6;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.12);
+  --r:10px;--r2:14px;
+  --nav-h:56px;
+}
+html,body{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.5;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+
+/* ─── Top header ─── */
+.top-bar{
+  position:sticky;top:0;z-index:30;
+  background:var(--s1);
+  border-bottom:1px solid var(--bdr);
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.top-logo{display:flex;align-items:center;gap:10px}
+.top-accent{width:3px;height:22px;background:linear-gradient(180deg,var(--gold),var(--gold2));border-radius:2px}
+.top-name{font-size:15px;font-weight:700;letter-spacing:.03em}
+.top-sub{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.top-right{display:flex;align-items:center;gap:6px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:pu 2s ease-in-out infinite}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.25}}
+.live-txt{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.date-txt{font-size:10px;color:var(--tx2);font-family:'JetBrains Mono',monospace}
+
+/* ─── Alert banner ─── */
+.alert-banner{
+  background:rgba(224,85,101,.10);
+  border-bottom:1px solid rgba(224,85,101,.25);
+  padding:9px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;
+}
+.ab-left{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--red)}
+.ab-right{font-size:11px;color:var(--red);font-family:'JetBrains Mono',monospace}
+
+/* ─── Main content ─── */
+.main{padding:14px 14px 8px}
+.panel{display:none;animation:fu .2s ease}
+.panel.on{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── Section heading ─── */
+.sec-h{font-size:11px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px}
+.sec-h:first-child{margin-top:0}
+
+/* ─── Page title ─── */
+.pg-title{font-size:17px;font-weight:700;margin-bottom:2px}
+.pg-sub{font-size:11px;color:var(--tx2);margin-bottom:14px}
+
+/* ─── Card ─── */
+.card{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r2);padding:14px 15px;position:relative;overflow:hidden;margin-bottom:10px}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)}
+.card-t{font-size:10px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-note{font-size:10px;color:var(--tx3)}
+
+/* ─── KPI grid ─── */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.kpi-grid.g3m{grid-template-columns:repeat(3,1fr)}
+.kc{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r2);padding:13px 13px;position:relative;overflow:hidden}
+.kc::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)}
+.kc-lbl{font-size:9px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;line-height:1.3}
+.kc-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.02em;line-height:1}
+.kc-u{font-size:12px;font-weight:400;color:var(--tx2);margin-left:1px}
+.kc-row{display:flex;align-items:center;gap:5px;margin-top:7px}
+.kc-bar{height:2px;border-radius:2px;background:var(--s3);margin-top:10px;overflow:hidden}
+.kc-fill{height:2px;border-radius:2px}
+
+/* ─── Tag / Badge ─── */
+.tag{display:inline-flex;align-items:center;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.tr{background:var(--rbg);color:var(--red)}
+.tg{background:var(--gbg);color:var(--grn)}
+.ta{background:var(--abg);color:var(--amb)}
+.tb{background:var(--bbg);color:var(--blu)}
+.tp{background:var(--pbg);color:var(--pur)}
+
+/* ─── Alert list ─── */
+.al-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.al-item:last-child{border-bottom:none}
+.al-name{font-size:13px;font-weight:500}
+.al-sub{font-size:10px;color:var(--tx3);margin-top:2px}
+.al-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;text-align:right}
+.al-d{font-size:10px;color:var(--tx3);text-align:right;margin-top:2px}
+
+/* ─── Progress rows ─── */
+.pr-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bdr)}
+.pr-row:last-child{border-bottom:none}
+.pr-name{flex:0 0 80px;font-size:12px}
+.pr-bar{flex:1;height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.pr-fill{height:5px;border-radius:3px}
+.pr-pct{flex:0 0 38px;text-align:right;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--tx2)}
+.pr-tag{flex:0 0 48px;text-align:right}
+
+/* ─── Table (mobile-friendly) ─── */
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.dt{width:100%;border-collapse:collapse;min-width:520px}
+.dt th{font-size:9px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;padding:0 8px 8px;text-align:right;border-bottom:1px solid var(--bdr);white-space:nowrap}
+.dt th:first-child{text-align:left;padding-left:0}
+.dt td{padding:8px;text-align:right;border-bottom:1px solid var(--bdr);font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap}
+.dt td:first-child{text-align:left;font-family:'Noto Sans JP',sans-serif;font-size:12px;padding-left:0}
+.dt tr:last-child td{border-bottom:none}
+.dt .tot td{font-weight:700;border-top:1px solid var(--bdr2);border-bottom:none;color:var(--tx)}
+.dot2{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+/* ─── Vs bar ─── */
+.vs-row{margin-bottom:10px}
+.vs-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;color:var(--tx2)}
+.vs-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx)}
+.vs-bg{height:6px;background:var(--s3);border-radius:4px;overflow:hidden}
+.vs-fill{height:6px;border-radius:4px}
+
+/* ─── Chip ─── */
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;border:1px solid var(--bdr2);font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx2);background:var(--s1)}
+.chip b{color:var(--amb)}
+.chip-red{border-color:rgba(224,85,101,.4);color:var(--red)}
+.chip-amb{border-color:rgba(232,160,48,.4);color:var(--amb)}
+
+/* ─── Divider ─── */
+.dv{height:1px;background:var(--bdr);margin:10px 0}
+
+/* ─── Roadmap item ─── */
+.rm-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr);align-items:flex-start}
+.rm-item:last-child{border-bottom:none}
+.rm-badge{flex-shrink:0;margin-top:2px}
+.rm-body{flex:1}
+.rm-title{font-size:12px;font-weight:500;margin-bottom:2px}
+.rm-sub{font-size:11px;color:var(--tx3)}
+
+/* ─── Bottom nav ─── */
+.bot-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:30;
+  background:var(--s1);
+  border-top:1px solid var(--bdr);
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom);
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+}
+.bn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:6px 2px;
+  border:none;background:none;
+  color:var(--tx3);font-size:9px;font-family:'Noto Sans JP',sans-serif;
+  cursor:pointer;transition:all .15s;position:relative;
+}
+.bn.on{color:var(--gold2)}
+.bn.on::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--gold);border-radius:0 0 3px 3px}
+.bn-ic{width:20px;height:20px;margin-bottom:1px}
+.bn-badge{
+  position:absolute;top:5px;right:calc(50% - 18px);
+  min-width:16px;height:16px;
+  background:var(--red);color:#fff;
+  font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  border-radius:8px;padding:0 4px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ─── Chart wrap ─── */
+.ch-wrap{height:180px;position:relative;margin-top:4px}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-logo">
+    <div class="top-accent"></div>
+    <div>
+      <div class="top-name">SSB Group</div>
+      <div class="top-sub">EXECUTIVE COCKPIT</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="live-dot"></div>
+    <div class="live-txt">LIVE</div>
+    <div class="date-txt">2026.03.19</div>
+  </div>
+</div>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner" onclick="go('vz')">
+  <div class="ab-left">⚠ 在留資格　期限切れ 7名・30日以内 3名</div>
+  <div class="ab-right">確認 →</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ═══ 全社 ═══ -->
+<div class="panel on" id="p-ov">
+  <div class="pg-title">全社コックピット</div>
+  <div class="pg-sub">2026年3月度　Day17/31（54.8%）</div>
+
+  <div class="kpi-grid">
+    <div class="kc"><div class="kc-lbl">月次利益 着地予測</div><div class="kc-val">¥21.1<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tr">▼32.3%</span></div><div class="kc-bar"><div class="kc-fill" style="width:54%;background:var(--red)"></div></div></div>
+    <div class="kc"><div class="kc-lbl">グループ期間売上</div><div class="kc-val">¥183<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tr">▼3.6%</span></div><div class="kc-bar"><div class="kc-fill" style="width:54%;background:var(--blu)"></div></div></div>
+    <div class="kc"><div class="kc-lbl">物流 最大費用率</div><div class="kc-val" style="color:var(--amb)">87.1<span class="kc-u">%</span></div><div class="kc-row"><span class="tag ta">市川MYB</span></div><div class="kc-bar"><div class="kc-fill" style="width:87%;background:var(--amb)"></div></div></div>
+    <div class="kc"><div class="kc-lbl">WS 粗利率</div><div class="kc-val" style="color:var(--grn)">21.9<span class="kc-u">%</span></div><div class="kc-row"><span class="tag tg">基準超</span></div><div class="kc-bar"><div class="kc-fill" style="width:38%;background:var(--grn)"></div></div></div>
+  </div>
+  <div class="kpi-grid" style="grid-template-columns:1fr">
+    <div class="kc"><div class="kc-lbl">コメット　2月事業利益</div><div class="kc-val" style="color:var(--pur)">¥9.1<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tp">前月比 ▲大幅改善</span><span style="font-size:11px;color:var(--tx2);margin-left:4px">持続性を要確認</span></div><div class="kc-bar"><div class="kc-fill" style="width:70%;background:var(--pur)"></div></div></div>
+  </div>
+
+  <div class="sec-h">緊急アラート</div>
+  <div class="card" style="border-color:rgba(224,85,101,.3)">
+    <div style="font-size:11px;font-weight:600;color:var(--red);margin-bottom:10px">🔴 在留資格　期限切れ（7名）</div>
+    <div class="al-item"><div><div class="al-name">シュレス マガール</div><div class="al-sub">SSB0000103 / ネパール</div></div><div><div class="al-val" style="color:var(--red)">676日超過</div><div class="al-d">2024/05/12期限</div></div></div>
+    <div class="al-item"><div><div class="al-name">グエン バン アイン</div><div class="al-sub">SSB0000093 / ベトナム</div></div><div><div class="al-val" style="color:var(--red)">513日超過</div><div class="al-d">2024/10/22期限</div></div></div>
+    <div class="al-item" onclick="go('vz')" style="cursor:pointer"><div style="color:var(--tx2);font-size:12px">他5名 → 詳細を確認</div><div style="color:var(--tx2);font-size:14px">→</div></div>
+  </div>
+  <div class="card" style="border-color:rgba(232,160,48,.25)">
+    <div style="font-size:11px;font-weight:600;color:var(--amb);margin-bottom:10px">🟡 30日以内満了（3名）</div>
+    <div class="al-item"><div><div class="al-name">ラミチャネ ラジェシュ</div><div class="al-sub">SSB0000117 / ネパール</div></div><div><div class="al-val" style="color:var(--amb)">残20日</div><div class="al-d">2026/04/08</div></div></div>
+    <div class="al-item"><div><div class="al-name">マイ ヴァン トウアン</div><div class="al-sub">SSB0000052 / ベトナム</div></div><div><div class="al-val" style="color:var(--amb)">残25日</div><div class="al-d">2026/04/13</div></div></div>
+    <div class="al-item"><div><div class="al-name">スレスタ ゴマ クマリ</div><div class="al-sub">SSB0000039 / ネパール</div></div><div><div class="al-val" style="color:var(--amb)">残28日</div><div class="al-d">2026/04/16</div></div></div>
+  </div>
+
+  <div class="sec-h">グループ月次推移</div>
+  <div class="card">
+    <div class="card-hd"><div class="card-t">売上 / 事業利益（7月〜2月）</div></div>
+    <div class="ch-wrap"><canvas id="c-trend"></canvas></div>
+  </div>
+
+  <div class="sec-h">2月度　P&L サマリー</div>
+  <div class="card">
+    <div class="scroll-x">
+      <table class="dt">
+        <thead><tr><th>事業部</th><th>売上</th><th>利益</th><th>率</th><th>前月</th></tr></thead>
+        <tbody>
+          <tr><td><span class="dot2" style="background:#4b8eff"></span>大田D</td><td>¥24.6M</td><td>¥1.3M</td><td style="color:var(--amb)">5.2%</td><td><span class="tag tr">▼</span></td></tr>
+          <tr><td><span class="dot2" style="background:var(--tel)"></span>京浜島AM</td><td>¥21.8M</td><td>¥3.3M</td><td style="color:var(--grn)">15.1%</td><td><span class="tag tg">▲</span></td></tr>
+          <tr><td><span class="dot2" style="background:#6eb5ff"></span>MYB大田</td><td>¥19.4M</td><td>¥4.4M</td><td style="color:var(--grn)">22.5%</td><td><span class="tag tg">▲</span></td></tr>
+          <tr><td><span class="dot2" style="background:#6eb5ff"></span>MYB市川</td><td>¥30.0M</td><td>¥4.8M</td><td style="color:var(--grn)">15.9%</td><td><span class="tag tg">▲</span></td></tr>
+          <tr><td><span class="dot2" style="background:#6eb5ff"></span>MYB浮島</td><td>¥20.1M</td><td>¥3.7M</td><td style="color:var(--grn)">18.4%</td><td><span class="tag ta">─</span></td></tr>
+          <tr><td><span class="dot2" style="background:var(--amb)"></span>WS</td><td>¥52.8M</td><td>¥3.1M</td><td style="color:var(--amb)">5.8%</td><td><span class="tag tr">▼</span></td></tr>
+          <tr><td><span class="dot2" style="background:var(--grn)"></span>ゴルフ</td><td>¥37.5M</td><td>¥3.5M</td><td>9.2%</td><td><span class="tag tg">▲</span></td></tr>
+          <tr><td><span class="dot2" style="background:var(--pur)"></span>コメット</td><td>¥58.6M</td><td style="color:var(--grn)">¥9.1M</td><td style="color:var(--grn)">15.5%</td><td><span class="tag tg">▲▲</span></td></tr>
+          <tr><td><span class="dot2" style="background:var(--tel)"></span>3PL他</td><td>¥18.0M</td><td>¥1.6M</td><td>8.9%</td><td><span class="tag ta">─</span></td></tr>
+          <tr class="tot"><td>合計</td><td>¥282.8M</td><td>¥34.7M</td><td>12.3%</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 物流 ═══ -->
+<div class="panel" id="p-lg">
+  <div class="pg-title">物流事業</div>
+  <div class="pg-sub">3月度 Day17 / 前年比・着地予測</div>
+
+  <div class="kpi-grid">
+    <div class="kc"><div class="kc-lbl">期間売上計</div><div class="kc-val">¥71.0<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tr">▼¥1.4M</span></div></div>
+    <div class="kc"><div class="kc-lbl">着地予測売上</div><div class="kc-val">¥126.7<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tr">▼¥5.4M</span></div></div>
+    <div class="kc"><div class="kc-lbl">期間利益</div><div class="kc-val">¥11.7<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tr">▼¥1.9M</span></div></div>
+    <div class="kc"><div class="kc-lbl">通過金額</div><div class="kc-val">¥840<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tr">▼¥11.8M</span></div></div>
+  </div>
+
+  <div class="sec-h">拠点別　事業利益率（3月）</div>
+  <div class="card">
+    <div class="pr-row"><div class="pr-name">大田 MYB</div><div class="pr-bar"><div class="pr-fill" style="width:75%;background:var(--blu)"></div></div><div class="pr-pct">25.8%</div><div class="pr-tag"><span class="tag ta">▼</span></div></div>
+    <div class="pr-row"><div class="pr-name">浮島 MYB</div><div class="pr-bar"><div class="pr-fill" style="width:53%;background:#6eb5ff"></div></div><div class="pr-pct">16.2%</div><div class="pr-tag"><span class="tag tr">▼</span></div></div>
+    <div class="pr-row"><div class="pr-name">京浜島 AM</div><div class="pr-bar"><div class="pr-fill" style="width:51%;background:var(--tel)"></div></div><div class="pr-pct">15.5%</div><div class="pr-tag"><span class="tag tg">▲</span></div></div>
+    <div class="pr-row"><div class="pr-name">大田 D</div><div class="pr-bar"><div class="pr-fill" style="width:48%;background:var(--amb)"></div></div><div class="pr-pct">14.8%</div><div class="pr-tag"><span class="tag tg">▲</span></div></div>
+    <div class="pr-row"><div class="pr-name">市川 MYB</div><div class="pr-bar"><div class="pr-fill" style="width:42%;background:#9bbfff"></div></div><div class="pr-pct">12.9%</div><div class="pr-tag"><span class="tag tr">▼</span></div></div>
+  </div>
+
+  <div class="sec-h">着地予測 vs 前年実績</div>
+  <div class="card">
+    <div class="vs-row"><div class="vs-label"><span>大田 MYB</span><span class="vs-val">¥20.7M <span style="color:var(--tx3)">/ 前年¥24.1M</span></span></div><div class="vs-bg"><div class="vs-fill" style="width:86%;background:var(--blu)"></div></div></div>
+    <div class="vs-row"><div class="vs-label"><span>市川 MYB</span><span class="vs-val">¥31.5M <span style="color:var(--tx3)">/ 前年¥34.3M</span></span></div><div class="vs-bg"><div class="vs-fill" style="width:92%;background:#6eb5ff"></div></div></div>
+    <div class="vs-row"><div class="vs-label"><span>浮島 MYB</span><span class="vs-val" style="color:var(--grn)">¥21.2M <span>/ 前年¥21.1M</span></span></div><div class="vs-bg"><div class="vs-fill" style="width:100%;background:var(--grn)"></div></div></div>
+    <div class="vs-row"><div class="vs-label"><span>大田 D</span><span class="vs-val">¥23.0M <span style="color:var(--tx3)">/ 前年¥25.7M</span></span></div><div class="vs-bg"><div class="vs-fill" style="width:90%;background:var(--amb)"></div></div></div>
+    <div class="vs-row" style="margin-bottom:0"><div class="vs-label"><span>京浜島 AM</span><span class="vs-val" style="color:var(--grn)">¥30.4M <span>/ 前年¥26.9M</span></span></div><div class="vs-bg"><div class="vs-fill" style="width:100%;background:var(--tel)"></div></div></div>
+  </div>
+
+  <div class="sec-h">拠点詳細テーブル</div>
+  <div class="card">
+    <div class="scroll-x">
+      <table class="dt">
+        <thead><tr><th>拠点</th><th>売上</th><th>費用率</th><th>利益</th><th>前年差</th><th>着地</th></tr></thead>
+        <tbody>
+          <tr><td>大田MYB</td><td>¥11.3M</td><td>74.2%</td><td>¥2.9M</td><td><span class="tag tr">▼¥1.3M</span></td><td>¥20.7M</td></tr>
+          <tr><td>市川MYB</td><td>¥17.3M</td><td style="color:var(--red)">87.1%</td><td>¥2.2M</td><td><span class="tag tr">▼¥1.3M</span></td><td>¥31.5M</td></tr>
+          <tr><td>浮島MYB</td><td>¥11.6M</td><td>83.8%</td><td>¥1.9M</td><td><span class="tag tr">▼¥1.0M</span></td><td>¥21.2M</td></tr>
+          <tr><td>大田D</td><td>¥14.2M</td><td style="color:var(--amb)">85.2%</td><td>¥2.1M</td><td><span class="tag tg">▲¥1.5M</span></td><td>¥23.0M</td></tr>
+          <tr><td>京浜島AM</td><td>¥16.7M</td><td>84.5%</td><td>¥2.6M</td><td><span class="tag tg">▲¥0.2M</span></td><td>¥30.4M</td></tr>
+          <tr class="tot"><td>合計</td><td>¥71.0M</td><td>83.5%</td><td>¥11.7M</td><td><span class="tag tr">▼¥1.9M</span></td><td>¥126.7M</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 人事 ═══ -->
+<div class="panel" id="p-hr">
+  <div class="pg-title">在留資格 / 労務</div>
+  <div class="pg-sub">在留管理71名　残業アラート</div>
+
+  <div class="chip-row">
+    <div class="chip chip-red">🔴 期限切れ <b style="color:var(--red)">7名</b></div>
+    <div class="chip chip-amb">🟡 30日以内 <b style="color:var(--amb)">3名</b></div>
+    <div class="chip">🟠 90日以内 5名</div>
+    <div class="chip">⚪ 不明・帰国中 3名</div>
+  </div>
+
+  <div class="sec-h">🔴 期限切れ（7名）── 今週中に社労士へ相談</div>
+  <div class="card" style="border-color:rgba(224,85,101,.3)">
+    <div class="al-item"><div><div class="al-name">シュレス マガール</div><div class="al-sub">SSB0000103 / ネパール / 技人国</div></div><div><div class="al-val" style="color:var(--red)">676日超過</div><div class="al-d">2024/05/12期限</div></div></div>
+    <div class="al-item"><div><div class="al-name">グエン バン アイン</div><div class="al-sub">SSB0000093 / ベトナム / 技人国</div></div><div><div class="al-val" style="color:var(--red)">513日超過</div><div class="al-d">2024/10/22期限</div></div></div>
+    <div class="al-item"><div><div class="al-name">ケ シ ティ カラム</div><div class="al-sub">SSB0000120 / ネパール / 技人国</div></div><div><div class="al-val" style="color:var(--red)">259日超過</div><div class="al-d">2025/07/03期限</div></div></div>
+    <div class="al-item"><div><div class="al-name">ダミ シバハリ</div><div class="al-sub">SSB0000100 / ネパール / 技人国</div></div><div><div class="al-val" style="color:var(--red)">257日超過</div><div class="al-d">2025/07/05期限</div></div></div>
+    <div class="al-item"><div><div class="al-name">アリヤル ハリ プラサド</div><div class="al-sub">SSB0000118 / ネパール / 技人国</div></div><div><div class="al-val" style="color:var(--red)">218日超過</div><div class="al-d">2025/08/13期限</div></div></div>
+    <div class="al-item"><div><div class="al-name">マガル サンギタ</div><div class="al-sub">2690210601 / ネパール / 留学</div></div><div><div class="al-val" style="color:var(--red)">29日超過</div><div class="al-d">2026/02/18期限</div></div></div>
+    <div class="al-item"><div><div class="al-name">ティマルシナ プラビンドラ</div><div class="al-sub">SSB0000088 / ネパール / 技人国</div></div><div><div class="al-val" style="color:var(--red)">18日超過</div><div class="al-d">2026/03/01期限</div></div></div>
+  </div>
+
+  <div class="sec-h">🟡 30〜90日以内満了（8名）</div>
+  <div class="card" style="border-color:rgba(232,160,48,.2)">
+    <div class="al-item"><div><div class="al-name">ラミチャネ ラジェシュ</div><div class="al-sub">SSB0000117 / ネパール</div></div><div><div class="al-val" style="color:var(--amb)">残20日</div><div class="al-d">2026/04/08</div></div></div>
+    <div class="al-item"><div><div class="al-name">マイ ヴァン トウアン</div><div class="al-sub">SSB0000052 / ベトナム</div></div><div><div class="al-val" style="color:var(--amb)">残25日</div><div class="al-d">2026/04/13</div></div></div>
+    <div class="al-item"><div><div class="al-name">スレスタ ゴマ クマリ</div><div class="al-sub">SSB0000039 / ネパール</div></div><div><div class="al-val" style="color:var(--amb)">残28日</div><div class="al-d">2026/04/16</div></div></div>
+    <div class="al-item"><div><div class="al-name">ラミチャネ ラゼンドラ</div><div class="al-sub">SSB0000014 / ネパール</div></div><div><div class="al-val" style="color:var(--amb)">残52日</div><div class="al-d">2026/05/10</div></div></div>
+    <div class="al-item"><div><div class="al-name">アワスティ ディパク</div><div class="al-sub">SSB0000137 / ネパール</div></div><div><div class="al-val" style="color:var(--amb)">残68日</div><div class="al-d">2026/05/26</div></div></div>
+    <div class="al-item"><div><div class="al-name">ハ クアン</div><div class="al-sub">SSB0000106 / ベトナム</div></div><div><div class="al-val" style="color:var(--amb)">残74日</div><div class="al-d">2026/06/01</div></div></div>
+    <div class="al-item"><div><div class="al-name">チャン バン ズイ</div><div class="al-sub">SSB0000133 / ベトナム</div></div><div><div class="al-val" style="color:var(--amb)">残75日</div><div class="al-d">2026/06/02</div></div></div>
+    <div class="al-item"><div><div class="al-name">ライ ディレンドラ クマル</div><div class="al-sub">SSB0000135 / ネパール</div></div><div><div class="al-val" style="color:var(--amb)">残86日</div><div class="al-d">2026/06/13</div></div></div>
+  </div>
+
+  <div class="sec-h">残業時間　月次推移</div>
+  <div class="card">
+    <div class="ch-wrap"><canvas id="c-ot"></canvas></div>
+  </div>
+
+  <div class="sec-h">3月度　部署別残業</div>
+  <div class="card">
+    <div class="pr-row"><div class="pr-name">MYB（青果）</div><div class="pr-bar"><div class="pr-fill" style="width:93%;background:var(--amb)"></div></div><div class="pr-pct" style="color:var(--amb)">418.6h</div></div>
+    <div class="pr-row"><div class="pr-name">カミサリー</div><div class="pr-bar"><div class="pr-fill" style="width:74%;background:var(--amb)"></div></div><div class="pr-pct" style="color:var(--amb)">335.0h</div></div>
+    <div class="pr-row"><div class="pr-name">ダイエー</div><div class="pr-bar"><div class="pr-fill" style="width:73%;background:var(--tel)"></div></div><div class="pr-pct" style="color:var(--grn)">327.2h</div></div>
+    <div class="pr-row"><div class="pr-name">管理</div><div class="pr-bar"><div class="pr-fill" style="width:21%;background:#8fa3c0"></div></div><div class="pr-pct" style="color:var(--grn)">94.0h</div></div>
+    <div class="pr-row"><div class="pr-name">その他</div><div class="pr-bar"><div class="pr-fill" style="width:4%;background:var(--pur)"></div></div><div class="pr-pct">18.4h</div></div>
+  </div>
+</div>
+
+<!-- ═══ コメット ═══ -->
+<div class="panel" id="p-cm">
+  <div class="pg-title">コメット事業</div>
+  <div class="pg-sub">26年度計画 vs 実績　※実績入力フロー整備中</div>
+
+  <div class="kpi-grid">
+    <div class="kc"><div class="kc-lbl">2月実績売上</div><div class="kc-val" style="color:var(--pur)">¥58.6<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tp">計画比▲5%</span></div></div>
+    <div class="kc"><div class="kc-lbl">2月事業利益</div><div class="kc-val" style="color:var(--pur)">¥9.1<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tg">前月▲大幅</span></div></div>
+    <div class="kc"><div class="kc-lbl">年度計画売上</div><div class="kc-val">¥721.7<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tb">年度計画</span></div></div>
+    <div class="kc"><div class="kc-lbl">年度計画利益</div><div class="kc-val">¥68.4<span class="kc-u">M</span></div><div class="kc-row"><span class="tag tb">年度計画</span></div></div>
+  </div>
+
+  <div class="sec-h">売上・利益　月次推移（7月〜2月）</div>
+  <div class="card">
+    <div class="ch-wrap"><canvas id="c-comet"></canvas></div>
+  </div>
+
+  <div class="sec-h">月次損益推移</div>
+  <div class="card">
+    <div class="scroll-x">
+      <table class="dt">
+        <thead><tr><th>月</th><th>売上</th><th>利益</th><th>率</th><th>前月差</th></tr></thead>
+        <tbody>
+          <tr><td>25-07</td><td>¥65.2M</td><td>¥3.7M</td><td>5.7%</td><td>—</td></tr>
+          <tr><td>25-08</td><td>¥66.7M</td><td>¥1.8M</td><td>2.7%</td><td><span class="tag tr">▼¥1.9M</span></td></tr>
+          <tr><td>25-09</td><td>¥57.8M</td><td style="color:var(--red)">▼¥0.7M</td><td>—</td><td><span class="tag tr">▼</span></td></tr>
+          <tr><td>25-10〜11</td><td>¥57.8M</td><td>¥0.8M</td><td>1.4%</td><td><span class="tag tg">▲回復</span></td></tr>
+          <tr><td>25-12</td><td>¥63.3M</td><td>¥1.9M</td><td>3.0%</td><td><span class="tag tg">▲</span></td></tr>
+          <tr><td>26-01</td><td>¥51.7M</td><td>¥0.4M</td><td>0.8%</td><td><span class="tag tr">▼</span></td></tr>
+          <tr><td>26-02</td><td>¥58.6M</td><td style="color:var(--grn)">¥9.1M</td><td style="color:var(--grn)">15.5%</td><td><span class="tag tg">▲▲¥8.7M</span></td></tr>
+          <tr class="tot"><td>8ヶ月計</td><td>¥478.9M</td><td>¥17.8M</td><td>3.7%</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;padding:9px 11px;background:rgba(46,201,138,.06);border-radius:7px;border-left:3px solid var(--grn)">
+      <div style="font-size:11px;color:var(--grn);font-weight:600">2月の急改善（+¥8.7M）── 持続性を毎月追跡</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:3px">実績入力フローの整備が最優先。導入店舗数・解約数を今月末までに入力できる体制を構築すること。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 整備状況 ═══ -->
+<div class="panel" id="p-rd">
+  <div class="pg-title">データ整備状況</div>
+  <div class="pg-sub">ロードマップ　全12タスク</div>
+
+  <div class="kpi-grid g3m">
+    <div class="kc"><div class="kc-lbl">S：今すぐ</div><div class="kc-val" style="color:var(--red)">2<span class="kc-u">件</span></div><div class="kc-row"><span class="tag tr">未着手</span></div></div>
+    <div class="kc"><div class="kc-lbl">A：1ヶ月</div><div class="kc-val" style="color:var(--amb)">6<span class="kc-u">件</span></div><div class="kc-row"><span class="tag ta">4月末</span></div></div>
+    <div class="kc"><div class="kc-lbl">B〜C：以降</div><div class="kc-val">4<span class="kc-u">件</span></div><div class="kc-row"><span class="tag tb">6〜9月</span></div></div>
+  </div>
+
+  <div class="sec-h">全タスク一覧</div>
+  <div class="card">
+    <div class="rm-item"><div class="rm-badge"><span class="tag tr">S 今週</span></div><div class="rm-body"><div class="rm-title">在留管理台帳の欠損補完（期限切れ7名確認）</div><div class="rm-sub">管理部門担当 → 今週金曜</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag tr">S 今週</span></div><div class="rm-body"><div class="rm-title">帰国中2名（SSB107・112）の在留期限確認</div><div class="rm-sub">管理部門担当 → 今週金曜</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag ta">A 4月末</span></div><div class="rm-body"><div class="rm-title">日次出欠入力フォーム整備</div><div class="rm-sub">管理担当係長 → Google Forms or Excel</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag ta">A 4月末</span></div><div class="rm-body"><div class="rm-title">入退社チェックリスト整備</div><div class="rm-sub">管理担当係長 → 処理完了フラグ付き台帳</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag ta">A 4月末</span></div><div class="rm-body"><div class="rm-title">コメット実績入力フロー整備</div><div class="rm-sub">コメット担当係長 → 導入・解約・稼働数</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag ta">A 4月末</span></div><div class="rm-body"><div class="rm-title">費用内訳列の追加（各拠点日次収益）</div><div class="rm-sub">管理担当係長 → 人件費・外注費・その他</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag ta">A 4月末</span></div><div class="rm-body"><div class="rm-title">インシデント報告受付ログ整備</div><div class="rm-sub">管理担当係長 → Googleフォーム推奨</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag tg">B 6月末</span></div><div class="rm-body"><div class="rm-title">現預金・売掛金管理台帳整備</div><div class="rm-sub">経理担当 → 月次試算表と連携</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag tg">B 6月末</span></div><div class="rm-body"><div class="rm-title">主要委託契約台帳整備</div><div class="rm-sub">管理担当係長 → 更新時期・金額管理</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag tg">B 6月末</span></div><div class="rm-body"><div class="rm-title">WSホールセラー商品別粗利集計</div><div class="rm-sub">WS担当係長 → 商品カテゴリ別内訳追加</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag tb">C 9月末</span></div><div class="rm-body"><div class="rm-title">勤怠システム導入検討（KING OF TIME等）</div><div class="rm-sub">管理担当係長 → 手入力の自動化</div></div></div>
+    <div class="rm-item"><div class="rm-badge"><span class="tag tb">C 9月末</span></div><div class="rm-body"><div class="rm-title">採用管理台帳整備</div><div class="rm-sub">管理担当係長 → 欠員・充足予定管理</div></div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- BOTTOM NAV -->
+<nav class="bot-nav">
+  <button class="bn on" onclick="go('ov')">
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="1.5" fill="currentColor" opacity=".6"/><rect x="3" y="13" width="8" height="8" rx="1.5" fill="currentColor" opacity=".6"/><rect x="13" y="13" width="8" height="8" rx="1.5" fill="currentColor" opacity=".4"/></svg>
+    全社
+  </button>
+  <button class="bn" onclick="go('lg')">
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h12M3 18h15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    物流
+  </button>
+  <button class="bn" onclick="go('hr')">
+    <div class="bn-badge">7!</div>
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    人事
+  </button>
+  <button class="bn" onclick="go('cm')">
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    コメット
+  </button>
+  <button class="bn" onclick="go('rd')">
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    整備
+  </button>
+</nav>
+
+<script>
+function go(id) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.bn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  document.querySelectorAll('.bn').forEach(b=>{
+    if(b.getAttribute('onclick')==="go('"+id+"')") b.classList.add('on');
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const C={grid:'rgba(255,255,255,.04)',tx2:'#7a96b8',font:"'JetBrains Mono',monospace",
+  grn:'#2ec98a',red:'#e05565',amb:'#e8a030',blu:'#4b8eff',pur:'#9b70ff',tel:'#2ec4b6'};
+const base={responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false}},
+  scales:{
+    x:{ticks:{color:C.tx2,font:{size:9,family:C.font}},grid:{color:C.grid},border:{color:'transparent'}},
+    y:{ticks:{color:C.tx2,font:{size:9,family:C.font}},grid:{color:C.grid},border:{color:'transparent'}}
+  }};
+const M=['25-07','25-08','25-09','25-10','25-11','25-12','26-01','26-02'];
+
+new Chart('c-trend',{type:'bar',data:{labels:M,datasets:[
+  {label:'売上',data:[282.3,287.7,289.2,276.5,286.8,310.5,287.2,264.9],backgroundColor:'rgba(75,142,255,.2)',borderColor:C.blu,borderWidth:1,borderRadius:2,yAxisID:'y',order:2},
+  {label:'利益',data:[30.9,30.6,30.3,27.0,30.2,29.7,34.7,33.0],type:'line',borderColor:C.grn,backgroundColor:'rgba(46,201,138,.07)',borderWidth:2,pointRadius:2,pointBackgroundColor:C.grn,fill:true,tension:0.3,yAxisID:'y2',order:1}
+]},options:{...base,scales:{...base.scales,
+  y:{...base.scales.y,position:'left',ticks:{...base.scales.y.ticks,callback:v=>'¥'+v+'M'}},
+  y2:{...base.scales.y,position:'right',grid:{display:false},ticks:{...base.scales.y.ticks,callback:v=>v+'M'}}
+}}});
+
+new Chart('c-ot',{type:'bar',data:{labels:['1月','2月','3月'],datasets:[
+  {label:'MYB',data:[474.5,420.8,418.6],backgroundColor:C.blu,borderRadius:2},
+  {label:'カミサリー',data:[370.0,389.5,335.0],backgroundColor:C.tel,borderRadius:2},
+  {label:'ダイエー',data:[405.8,356.0,327.2],backgroundColor:C.amb,borderRadius:2},
+  {label:'管理',data:[121.8,130.8,94.0],backgroundColor:'rgba(143,163,184,.45)',borderRadius:2},
+]},options:{...base,
+  scales:{x:{...base.scales.x,stacked:true},y:{...base.scales.y,stacked:true,ticks:{...base.scales.y.ticks,callback:v=>v+'h'}}},
+  plugins:{legend:{display:true,labels:{color:C.tx2,font:{size:9,family:C.font},boxWidth:7,boxHeight:7,padding:8}}}
+}});
+
+new Chart('c-comet',{type:'line',data:{labels:M,datasets:[
+  {label:'売上',data:[65.2,66.7,57.8,57.8,57.8,63.3,51.7,58.6],borderColor:C.pur,backgroundColor:'rgba(155,112,255,.07)',borderWidth:2,pointRadius:2,pointBackgroundColor:C.pur,fill:true,tension:0.3,yAxisID:'y'},
+  {label:'事業利益',data:[3.7,1.8,-0.7,0.8,0.8,1.9,0.4,9.1],borderColor:C.grn,borderWidth:2,pointRadius:2,pointBackgroundColor:C.grn,fill:false,tension:0.3,yAxisID:'y2'}
+]},options:{...base,
+  plugins:{legend:{display:true,labels:{color:C.tx2,font:{size:9,family:C.font},boxWidth:7,boxHeight:7,padding:8}}},
+  scales:{...base.scales,
+    y:{...base.scales.y,position:'left',ticks:{...base.scales.y.ticks,callback:v=>'¥'+v+'M'}},
+    y2:{...base.scales.y,position:'right',grid:{display:false},ticks:{...base.scales.y.ticks,callback:v=>v+'M'}}
+  }
+}});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+  SSB GAS連携パッチ（⑨dashboard_gas_patch.js）
+  報告依頼送信・ボタン状態管理・報告状況ポーリング
+════════════════════════════════════════════════════════ -->
+<script>
+const GAS_URL  = "https://script.google.com/macros/s/AKfycbzG-UNiweWdDGMuc_seTLITV7Y3Wc982m___1GqIrOEtM4KdmLGrxIPgsx9tqCNB5cNjQ/exec";
+const FORM_URL = "https://ssb-report-form.github.io/SSB/%E2%91%A7SSB_report_form.html";
+
+const ALERT_DEFS = {
+  "al-103":  { category: "visa_all",         to: "管理担当係長",           subject: "在留資格 期限超過（シュレス マガール）",    deadline: "今日中" },
+  "al-093":  { category: "visa_all",         to: "管理担当係長",           subject: "在留資格 期限超過（グエン バン アイン）",    deadline: "今日中" },
+  "al-120":  { category: "visa_myb_ota",     to: "大田MYB拠点　管理担当", subject: "在留資格 期限超過（ケ シ ティ カラム）",    deadline: "今日中" },
+  "al-100":  { category: "visa_myb_ota",     to: "大田MYB拠点　管理担当", subject: "在留資格 期限超過（ダミ シバハリ）",        deadline: "今日中" },
+  "al-118":  { category: "visa_myb_ota",     to: "大田MYB拠点　管理担当", subject: "在留資格 期限超過（アリヤル ハリ プラサド）",deadline: "今日中" },
+  "al-601":  { category: "visa_myb_ukishima",to: "浮島MYB拠点　管理担当", subject: "在留資格 期限超過（マガル サンギタ）",      deadline: "今日中" },
+  "al-088":  { category: "visa_daiei_ota",   to: "ダイエー大田拠点　管理担当", subject: "在留資格 期限超過（ティマルシナ プラビンドラ）", deadline: "今日中" },
+  "al-117":  { category: "visa_myb_ichikawa",to: "市川MYB拠点　管理担当", subject: "在留資格 30日以内満了（ラミチャネ ラジェシュ）",deadline: "今週中" },
+  "al-052":  { category: "visa_myb_ota",     to: "大田MYB拠点　管理担当", subject: "在留資格 30日以内満了（マイ ヴァン トウアン）", deadline: "今週中" },
+  "al-039":  { category: "visa_myb_ichikawa",to: "市川MYB拠点　管理担当", subject: "在留資格 30日以内満了（スレスタ ゴマ クマリ）", deadline: "今週中" },
+  "al-ot1":  { category: "overtime_myb",     to: "MYB　現場課長",          subject: "残業上限接近（チュ ミン 44.6h）",           deadline: "今日中" },
+  "al-ot2":  { category: "overtime_myb",     to: "MYB　現場課長",          subject: "残業上限接近（ラミチャネ ラゼンドラ 44.0h）",deadline: "今日中" },
+  "al-cost": { category: "cost_myb_ichikawa",to: "市川MYB拠点　課長",      subject: "費用率超過（市川MYB 87.1%）",               deadline: "今週中" },
+};
+
+const sentAlerts    = new Set(JSON.parse(localStorage.getItem("ssb_sent")    || "[]"));
+const pendingAlerts = new Set(JSON.parse(localStorage.getItem("ssb_pending") || "[]"));
+
+document.addEventListener("DOMContentLoaded", () => {
+  restoreButtonStates();
+  setInterval(checkNewReports, 30000);
+});
+
+function restoreButtonStates() {
+  sentAlerts.forEach(alertId => {
+    const btn = document.querySelector(`[data-alert-id="${alertId}"] .req-btn`);
+    if (btn && pendingAlerts.has(alertId)) markPending(btn);
+    else if (btn) markSent(btn);
+  });
+}
+
+async function requestReport(alertId, customMessage = "") {
+  const def = ALERT_DEFS[alertId];
+  if (!def) { showToast("⚠ アラート定義が見つかりません"); return; }
+  openRequestModal(alertId, def.to, def.subject, customMessage || getDefaultMessage(alertId, def.subject), def.deadline, def.category);
+}
+
+function getDefaultMessage(alertId, subject) {
+  if (alertId.startsWith("al-0") || alertId.startsWith("al-6") || alertId.startsWith("al-1")) {
+    return `${subject}について、在留カードの現在の申請状況（申請済み・申請中・未申請）と今後の対応予定を報告してください。`;
+  }
+  if (alertId.startsWith("al-ot")) {
+    return `${subject}について、残りの勤務日のシフト調整計画を報告してください。`;
+  }
+  if (alertId.startsWith("al-cost")) {
+    return `${subject}について、費用超過の主因（人件費・外注費・その他の内訳）と残り日数での対応策を報告してください。`;
+  }
+  return `${subject}について状況を確認し、対応状況と今後の予定を報告してください。`;
+}
+
+async function sendToGAS(alertId, to, subject, message, deadline, category) {
+  if (!GAS_URL || GAS_URL.includes("ここに")) {
+    console.log("デモモード: GAS_URLが未設定です");
+    return { ok: true, demo: true };
+  }
+  const payload = { action: "send_request", alertId, alertCategory: category, to, subject, message, deadline, sentAt: new Date().toISOString() };
+  await fetch(GAS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  return { ok: true };
+}
+
+async function checkNewReports() {
+  if (!GAS_URL || GAS_URL.includes("ここに")) return;
+  try {
+    const res  = await fetch(`${GAS_URL}?action=get_reports`);
+    const data = await res.json();
+    if (data.reports && data.reports.length > 0) {
+      updateInboxBadge(data.reports.filter(r => r.readByPresident === "未読").length);
+      data.requests?.filter(r => r.status === "回答済み").forEach(r => {
+        const btn = document.querySelector(`[data-alert-id="${r.alertId}"] .req-btn`);
+        if (btn && !btn.classList.contains("replied")) markReplied(btn);
+      });
+    }
+  } catch (e) { console.log("GAS取得エラー（デモモードの場合は無視可）:", e); }
+}
+
+function markSent(btn) {
+  btn.className = "req-btn sent";
+  btn.innerHTML = `<svg viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 送信済み`;
+  btn.onclick = null;
+}
+function markPending(btn) {
+  btn.className = "req-btn pending";
+  btn.innerHTML = `<svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> 回答待ち`;
+  btn.onclick = null;
+}
+function markReplied(btn) {
+  btn.className = "req-btn replied";
+  btn.style.background = "rgba(46,201,138,.12)";
+  btn.style.borderColor = "var(--grn)";
+  btn.style.color = "var(--grn)";
+  btn.innerHTML = `<svg viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 回答済み`;
+  btn.onclick = null;
+}
+function updateInboxBadge(count) {
+  const badge = document.getElementById("inbox-badge");
+  if (badge) { badge.textContent = count > 0 ? count : ""; badge.style.display = count > 0 ? "flex" : "none"; }
+}
+async function onSendConfirmed(alertId, to, subject, message, deadline, category) {
+  const btn = document.querySelector(`[data-alert-id="${alertId}"] .req-btn`);
+  try {
+    await sendToGAS(alertId, to, subject, message, deadline, category);
+    markPending(btn);
+    sentAlerts.add(alertId);
+    pendingAlerts.add(alertId);
+    localStorage.setItem("ssb_sent",    JSON.stringify([...sentAlerts]));
+    localStorage.setItem("ssb_pending", JSON.stringify([...pendingAlerts]));
+    showToast("📲 LINE で報告依頼を送信しました");
+  } catch (e) {
+    showToast("⚠ 送信に失敗しました。再試行してください。");
+    console.error(e);
+  }
+}
+</script>
+</body>
+</html>
