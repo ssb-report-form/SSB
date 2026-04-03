@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>SSB 出欠入力フォーム</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1929;--s1:#111f33;--s2:#172540;--s3:#1e2e4a;
+  --gold:#c8973a;--gold2:#e8b550;
+  --tx:#dde6f4;--tx2:#7a96b8;--tx3:#3d5470;
+  --red:#e05565;--rbg:rgba(224,85,101,.13);
+  --amb:#e8a030;--abg:rgba(232,160,48,.12);
+  --grn:#2ec98a;--gbg:rgba(46,201,138,.12);
+  --blu:#4b8eff;--bbg:rgba(75,142,255,.12);
+  --bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.14);
+  --r:10px;--r2:14px
+}
+html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.5}
+body{padding:0 0 60px}
+
+/* ─── Header ─── */
+.hd{background:var(--s1);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.hd-bar{width:3px;height:22px;background:linear-gradient(180deg,var(--gold),var(--gold2));border-radius:2px;flex-shrink:0}
+.hd-title{font-size:15px;font-weight:700}
+.hd-sub{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:1px}
+
+/* ─── Tabs ─── */
+.tab-wrap{background:var(--s1);border-bottom:1px solid var(--bdr);display:flex;padding:0 16px;gap:4px}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ─── Content ─── */
+.wrap{max-width:520px;margin:0 auto;padding:18px 16px}
+.panel{display:none}.panel.on{display:block}
+
+/* ─── Section card ─── */
+.sec{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r2);padding:16px;margin-bottom:16px}
+.sec-title{font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';display:block;width:3px;height:14px;background:var(--gold);border-radius:2px}
+
+/* ─── Form elements ─── */
+.form-block{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.form-label .req{font-size:9px;background:var(--rbg);color:var(--red);padding:1px 5px;border-radius:3px;font-weight:600}
+.form-label .opt{font-size:9px;background:rgba(75,142,255,.12);color:var(--blu);padding:1px 5px;border-radius:3px;font-weight:600}
+.form-input,.form-textarea,.form-select{
+  width:100%;background:var(--s2);border:1.5px solid var(--bdr);border-radius:var(--r);
+  color:var(--tx);font-size:13px;font-family:'Noto Sans JP',sans-serif;
+  padding:10px 12px;transition:.15s;outline:none;-webkit-appearance:none
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--gold);background:var(--s3)}
+.form-textarea{resize:vertical;min-height:70px;line-height:1.6}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a96b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* ─── Radio / Toggle ─── */
+.toggle-wrap{display:flex;gap:8px;flex-wrap:wrap}
+.toggle-btn{flex:1;min-width:80px;padding:9px 12px;background:var(--s2);border:1.5px solid var(--bdr);border-radius:var(--r);font-size:13px;color:var(--tx2);text-align:center;cursor:pointer;transition:.15s;user-select:none}
+.toggle-btn.sel-no{background:var(--gbg);border-color:var(--grn);color:var(--grn);font-weight:600}
+.toggle-btn.sel-yes{background:var(--rbg);border-color:var(--red);color:var(--red);font-weight:600}
+.toggle-btn.sel-amb{background:var(--abg);border-color:var(--amb);color:var(--amb);font-weight:600}
+.toggle-btn.sel-unk{background:rgba(75,142,255,.12);border-color:var(--blu);color:var(--blu);font-weight:600}
+
+/* ─── Count input ─── */
+.count-wrap{display:flex;gap:10px}
+.count-group{flex:1}
+.count-label{font-size:10px;color:var(--tx3);margin-bottom:5px;text-align:center}
+.count-input{width:100%;background:var(--s2);border:1.5px solid var(--bdr);border-radius:var(--r);color:var(--tx);font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:10px;text-align:center;outline:none;-webkit-appearance:none;transition:.15s}
+.count-input:focus{border-color:var(--gold);background:var(--s3)}
+.count-rate{text-align:center;font-size:11px;color:var(--tx3);margin-top:6px}
+.count-rate span{font-size:15px;font-weight:700}
+.rate-ok span{color:var(--grn)}
+.rate-warn span{color:var(--amb)}
+.rate-ng span{color:var(--red)}
+
+/* ─── Alert banner ─── */
+.alert-banner{background:var(--rbg);border:1px solid rgba(224,85,101,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--red);display:none}
+.alert-banner.show{display:flex;align-items:center;gap:8px}
+
+/* ─── Submit ─── */
+.submit-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:var(--r);color:#0c1929;font-size:15px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:.15s;margin-top:8px}
+.submit-btn:active{opacity:.85;transform:scale(.99)}
+.submit-btn.loading{opacity:.7;pointer-events:none}
+
+/* ─── Success ─── */
+.success{display:none;text-align:center;padding:48px 24px}
+.success.show{display:block}
+.success-icon{font-size:48px;margin-bottom:16px}
+.success-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:13px;color:var(--tx2);margin-bottom:24px}
+.back-btn{display:inline-block;padding:10px 24px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r);color:var(--tx2);font-size:13px;cursor:pointer}
+
+/* ─── Toast ─── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--s3);border:1px solid var(--bdr2);border-radius:var(--r);padding:10px 18px;font-size:13px;white-space:nowrap;opacity:0;pointer-events:none;transition:.3s;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div class="hd-bar"></div>
+  <div>
+    <div class="hd-title">SSB 出欠入力フォーム</div>
+    <div class="hd-sub">ATTENDANCE REPORT / 課長入力用</div>
+  </div>
+</div>
+
+<!-- タブ -->
+<div class="tab-wrap">
+  <div class="tab on" onclick="switchTab('daily')">📅 日次</div>
+  <div class="tab" onclick="switchTab('weekly')">📊 週次</div>
+  <div class="tab" onclick="switchTab('monthly')">📋 月次</div>
+</div>
+
+<div class="wrap">
+
+  <!-- ═══ 日次フォーム ═══ -->
+  <div class="panel on" id="p-daily">
+    <div style="background:rgba(75,142,255,.1);border:1px solid rgba(75,142,255,.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#7ab8ff;display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v4M8 10.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>📅 報告期日：<strong>前日分を翌朝8:30まで</strong>に入力してください</span>
+    </div>
+    <div class="alert-banner" id="daily-alert">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none"><path d="M8 2L14.5 13H1.5L8 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v4M8 11.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span id="daily-alert-msg"></span>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">基本情報</div>
+
+      <div class="form-block">
+        <div class="form-label">拠点名 <span class="req">必須</span></div>
+        <select class="form-select" id="d-branch">
+          <option value="">── 選択してください ──</option>
+          <option>大田MYB</option>
+          <option>市川MYB</option>
+          <option>浮島MYB</option>
+          <option>ダイエー大田</option>
+          <option>京浜島AM</option>
+          <option>WS事業部</option>
+          <option>コメット事業部</option>
+          <option>ゴルフ共配</option>
+        </select>
+      </div>
+
+      <div class="form-block">
+        <div class="form-label">対象日 <span class="req">必須</span></div>
+        <input type="date" class="form-input" id="d-date">
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">出勤状況</div>
+
+      <div class="form-block">
+        <div class="form-label">人数入力 <span class="req">必須</span></div>
+        <div class="count-wrap">
+          <div class="count-group">
+            <div class="count-label">予定人数</div>
+            <input type="number" class="count-input" id="d-scheduled" min="0" placeholder="0" oninput="calcRate()">
+          </div>
+          <div class="count-group">
+            <div class="count-label">実出勤数</div>
+            <input type="number" class="count-input" id="d-actual" min="0" placeholder="0" oninput="calcRate()">
+          </div>
+        </div>
+        <div class="count-rate" id="rate-display">充足率：<span>─</span></div>
+      </div>
+
+      <div class="form-block">
+        <div class="form-label">欠勤者・理由 <span class="opt">任意</span></div>
+        <textarea class="form-textarea" id="d-absent" placeholder="例：田中（発熱）、鈴木（私用）"></textarea>
+      </div>
+
+      <div class="form-block">
+        <div class="form-label">遅刻・早退者 <span class="opt">任意</span></div>
+        <textarea class="form-textarea" id="d-late" placeholder="例：山本（遅刻30分・電車遅延）" style="min-height:50px"></textarea>
+      </div>
+
+      <div class="form-block">
+        <div class="form-label">無断欠勤（連絡なし2時間超）<span class="req">必須</span></div>
+        <div class="toggle-wrap" id="d-unauthorized">
+          <div class="toggle-btn sel-no" onclick="toggle(this,'d-unauthorized','no')">なし</div>
+          <div class="toggle-btn" onclick="toggle(this,'d-unauthorized','yes')">あり</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">体調不良・ケガ</div>
+
+      <div class="form-block">
+        <div class="form-label">体調不良・ケガによる欠勤 <span class="req">必須</span></div>
+        <div class="toggle-wrap" id="d-injury">
+          <div class="toggle-btn sel-no" onclick="toggle(this,'d-injury','no')">なし</div>
+          <div class="toggle-btn" onclick="toggle(this,'d-injury','yes')">あり</div>
+        </div>
+      </div>
+
+      <div id="d-injury-detail" style="display:none">
+        <div class="form-block">
+          <div class="form-label">該当者名・状況 <span class="req">必須</span></div>
+          <textarea class="form-textarea" id="d-injury-desc" placeholder="例：グエン（右手打撲・作業中）、チュ（発熱38.5度）" style="min-height:50px"></textarea>
+        </div>
+
+        <div class="form-block">
+          <div class="form-label">労災可能性 <span class="req">必須</span></div>
+          <div class="toggle-wrap" id="d-workers-comp">
+            <div class="toggle-btn sel-no" onclick="toggle(this,'d-workers-comp','no')">なし</div>
+            <div class="toggle-btn" onclick="toggle(this,'d-workers-comp','yes')">あり</div>
+            <div class="toggle-btn" onclick="toggle(this,'d-workers-comp','unk')">不明</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">特記事項</div>
+      <div class="form-block" style="margin-bottom:0">
+        <textarea class="form-textarea" id="d-note" placeholder="その他、社長・管理部門に共有すべき事項があれば記入してください"></textarea>
+      </div>
+    </div>
+
+    <div id="daily-form-wrap">
+      <button class="submit-btn" id="d-submit-btn" onclick="submitDaily()">
+        <span id="d-submit-txt">送信する</span>
+      </button>
+    </div>
+    <div class="success" id="daily-success">
+      <div class="success-icon">✅</div>
+      <div class="success-title">送信完了</div>
+      <div class="success-sub">出欠情報を受け付けました。<br>アラート条件に該当する場合は自動でLINE通知が送信されます。</div>
+      <div class="back-btn" onclick="resetDaily()">続けて入力する</div>
+    </div>
+  </div>
+
+  <!-- ═══ 週次フォーム ═══ -->
+  <div class="panel" id="p-weekly">
+    <div style="background:rgba(75,142,255,.1);border:1px solid rgba(75,142,255,.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#7ab8ff;display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v4M8 10.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>📅 報告期日：<strong>毎週月曜日</strong>に入力してください</span>
+    </div>
+    <div class="sec">
+      <div class="sec-title">基本情報</div>
+      <div class="form-block">
+        <div class="form-label">拠点名 <span class="req">必須</span></div>
+        <select class="form-select" id="w-branch">
+          <option value="">── 選択してください ──</option>
+          <option>大田MYB</option>
+          <option>市川MYB</option>
+          <option>浮島MYB</option>
+          <option>ダイエー大田</option>
+          <option>京浜島AM</option>
+          <option>WS事業部</option>
+          <option>コメット事業部</option>
+          <option>ゴルフ共配</option>
+        </select>
+      </div>
+      <div class="form-block">
+        <div class="form-label">対象週（月曜日の日付）<span class="req">必須</span></div>
+        <input type="date" class="form-input" id="w-date">
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">残業 45h接近者リスト</div>
+
+      <div class="form-block">
+        <div class="form-label">残業40h超の社員（当月累計）<span class="opt">任意</span></div>
+        <textarea class="form-textarea" id="w-overtime" placeholder="例：チュ ミン 44.6h、ラミチャネ ラゼンドラ 44.0h&#10;該当なしの場合は空欄でOK" style="min-height:80px"></textarea>
+      </div>
+
+      <div class="form-block">
+        <div class="form-label">前週より40h超の人数が増加しましたか？ <span class="req">必須</span></div>
+        <div class="toggle-wrap" id="w-increased">
+          <div class="toggle-btn sel-no" onclick="toggle(this,'w-increased','no')">増加なし</div>
+          <div class="toggle-btn" onclick="toggle(this,'w-increased','yes')">増加あり</div>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <div class="form-label">シフト調整の対応状況 <span class="opt">任意</span></div>
+        <textarea class="form-textarea" id="w-shift-plan" placeholder="例：来週はチュ ミンのシフトを2日削減予定" style="min-height:50px"></textarea>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">特記事項</div>
+      <div class="form-block" style="margin-bottom:0">
+        <textarea class="form-textarea" id="w-note" placeholder="その他、共有すべき事項があれば記入してください"></textarea>
+      </div>
+    </div>
+
+    <div id="weekly-form-wrap">
+      <button class="submit-btn" id="w-submit-btn" onclick="submitWeekly()">
+        <span id="w-submit-txt">送信する</span>
+      </button>
+    </div>
+    <div class="success" id="weekly-success">
+      <div class="success-icon">✅</div>
+      <div class="success-title">送信完了</div>
+      <div class="success-sub">週次レポートを受け付けました。</div>
+      <div class="back-btn" onclick="resetForm('weekly')">続けて入力する</div>
+    </div>
+  </div>
+
+  <!-- ═══ 月次フォーム ═══ -->
+  <div class="panel" id="p-monthly">
+    <div style="background:rgba(75,142,255,.1);border:1px solid rgba(75,142,255,.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#7ab8ff;display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v4M8 10.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>📅 報告期日：<strong>毎月1日（月初）</strong>に入力してください</span>
+    </div>
+    <div class="sec">
+      <div class="sec-title">基本情報</div>
+      <div class="form-block">
+        <div class="form-label">拠点名 <span class="req">必須</span></div>
+        <select class="form-select" id="m-branch">
+          <option value="">── 選択してください ──</option>
+          <option>大田MYB</option>
+          <option>市川MYB</option>
+          <option>浮島MYB</option>
+          <option>ダイエー大田</option>
+          <option>京浜島AM</option>
+          <option>WS事業部</option>
+          <option>コメット事業部</option>
+          <option>ゴルフ共配</option>
+        </select>
+      </div>
+      <div class="form-block">
+        <div class="form-label">対象年月 <span class="req">必須</span></div>
+        <input type="month" class="form-input" id="m-month">
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">在留更新申請状況</div>
+
+      <div class="form-block">
+        <div class="form-label">90日以内満了で未申請の社員 <span class="opt">任意</span></div>
+        <textarea class="form-textarea" id="m-visa-pending" placeholder="例：ラミチャネ ラジェシュ（残20日・未申請）&#10;全員申請済みの場合は空欄でOK" style="min-height:70px"></textarea>
+      </div>
+
+      <div class="form-block">
+        <div class="form-label">未申請者が存在しますか？ <span class="req">必須</span></div>
+        <div class="toggle-wrap" id="m-visa-exist">
+          <div class="toggle-btn sel-no" onclick="toggle(this,'m-visa-exist','no')">全員申請済み</div>
+          <div class="toggle-btn" onclick="toggle(this,'m-visa-exist','yes')">未申請者あり</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">帰国・長期不在者の就労可否確認</div>
+
+      <div class="form-block">
+        <div class="form-label">帰国中・在留期限不明の社員 <span class="opt">任意</span></div>
+        <textarea class="form-textarea" id="m-overseas" placeholder="例：サルマ クリスナ プラサド（帰国中・期限不明）&#10;該当なしの場合は空欄でOK" style="min-height:70px"></textarea>
+      </div>
+
+      <div class="form-block">
+        <div class="form-label">帰国中・期限不明の者が存在しますか？ <span class="req">必須</span></div>
+        <div class="toggle-wrap" id="m-overseas-exist">
+          <div class="toggle-btn sel-no" onclick="toggle(this,'m-overseas-exist','no')">なし</div>
+          <div class="toggle-btn" onclick="toggle(this,'m-overseas-exist','yes')">あり</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">特記事項</div>
+      <div class="form-block" style="margin-bottom:0">
+        <textarea class="form-textarea" id="m-note" placeholder="その他、共有すべき事項があれば記入してください"></textarea>
+      </div>
+    </div>
+
+    <div id="monthly-form-wrap">
+      <button class="submit-btn" id="m-submit-btn" onclick="submitMonthly()">
+        <span id="m-submit-txt">送信する</span>
+      </button>
+    </div>
+    <div class="success" id="monthly-success">
+      <div class="success-icon">✅</div>
+      <div class="success-title">送信完了</div>
+      <div class="success-sub">月次レポートを受け付けました。</div>
+      <div class="back-btn" onclick="resetForm('monthly')">続けて入力する</div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzG-UNiweWdDGMuc_seTLITV7Y3Wc982m___1GqIrOEtM4KdmLGrxIPgsx9tqCNB5cNjQ/exec";
+
+// ── タブ切替 ──
+function switchTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('p-' + id).classList.add('on');
+  event.target.classList.add('on');
+}
+
+// ── 初期値設定 ──
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  document.getElementById('d-date').value = toDateStr(yesterday);
+  document.getElementById('w-date').value = toDateStr(getLastMonday());
+  document.getElementById('m-month').value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+});
+
+function toDateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function getLastMonday() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? 6 : day - 1;
+  d.setDate(d.getDate() - diff);
+  return d;
+}
+
+// ── トグルボタン ──
+function toggle(el, groupId, val) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.toggle-btn').forEach(b => b.className = 'toggle-btn');
+  if (val === 'no')  el.classList.add('sel-no');
+  if (val === 'yes') el.classList.add('sel-yes');
+  if (val === 'unk') el.classList.add('sel-unk');
+  if (val === 'amb') el.classList.add('sel-amb');
+  group.dataset.value = val;
+
+  // 体調不良ありの場合、詳細欄を表示
+  if (groupId === 'd-injury') {
+    document.getElementById('d-injury-detail').style.display = val === 'yes' ? 'block' : 'none';
+  }
+}
+
+function getToggleValue(groupId) {
+  return document.getElementById(groupId)?.dataset.value || '';
+}
+
+// ── 充足率計算 ──
+function calcRate() {
+  const scheduled = parseInt(document.getElementById('d-scheduled').value) || 0;
+  const actual    = parseInt(document.getElementById('d-actual').value) || 0;
+  const display   = document.getElementById('rate-display');
+  if (!scheduled) { display.className = 'count-rate'; display.innerHTML = '充足率：<span>─</span>'; return; }
+  const rate = Math.round(actual / scheduled * 100);
+  const cls  = rate >= 80 ? 'rate-ok' : rate >= 60 ? 'rate-warn' : 'rate-ng';
+  display.className = 'count-rate ' + cls;
+  display.innerHTML = '充足率：<span>' + rate + '%</span>';
+
+  // アラートバナー
+  const banner = document.getElementById('daily-alert');
+  const msg    = document.getElementById('daily-alert-msg');
+  if (rate < 80 && scheduled > 0) {
+    msg.textContent = '充足率' + rate + '%：80%を下回っています。社長への口頭報告が必要です。';
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+// ── バリデーション ──
+function validateDaily() {
+  if (!document.getElementById('d-branch').value) { showToast('⚠ 拠点名を選択してください'); return false; }
+  if (!document.getElementById('d-date').value)   { showToast('⚠ 対象日を入力してください'); return false; }
+  const s = document.getElementById('d-scheduled').value;
+  const a = document.getElementById('d-actual').value;
+  if (!s || !a) { showToast('⚠ 予定人数・実出勤数を入力してください'); return false; }
+  if (!getToggleValue('d-unauthorized')) { showToast('⚠ 無断欠勤の有無を選択してください'); return false; }
+  if (!getToggleValue('d-injury'))       { showToast('⚠ 体調不良・ケガの有無を選択してください'); return false; }
+  if (getToggleValue('d-injury') === 'yes') {
+    if (!document.getElementById('d-injury-desc').value.trim()) { showToast('⚠ 該当者名・状況を入力してください'); return false; }
+    if (!getToggleValue('d-workers-comp')) { showToast('⚠ 労災可能性を選択してください'); return false; }
+  }
+  return true;
+}
+
+// ── 日次送信 ──
+async function submitDaily() {
+  if (!validateDaily()) return;
+  const btn = document.getElementById('d-submit-btn');
+  const txt = document.getElementById('d-submit-txt');
+  btn.classList.add('loading');
+  txt.textContent = '送信中...';
+
+  const scheduled = parseInt(document.getElementById('d-scheduled').value) || 0;
+  const actual    = parseInt(document.getElementById('d-actual').value) || 0;
+  const rate      = scheduled > 0 ? Math.round(actual / scheduled * 100) : 100;
+
+  const payload = {
+    action:        "submit_attendance",
+    type:          "daily",
+    branch:        document.getElementById('d-branch').value,
+    date:          document.getElementById('d-date').value,
+    scheduled:     scheduled,
+    actual:        actual,
+    rate:          rate,
+    absent:        document.getElementById('d-absent').value.trim(),
+    late:          document.getElementById('d-late').value.trim(),
+    unauthorized:  getToggleValue('d-unauthorized'),
+    injury:        getToggleValue('d-injury'),
+    injuryDesc:    document.getElementById('d-injury-desc').value.trim(),
+    workersComp:   getToggleValue('d-workers-comp'),
+    note:          document.getElementById('d-note').value.trim(),
+    submittedAt:   new Date().toISOString()
+  };
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('daily-form-wrap').style.display = 'none';
+    document.getElementById('daily-success').classList.add('show');
+  } catch(e) {
+    btn.classList.remove('loading');
+    txt.textContent = '送信する';
+    showToast('⚠ 送信に失敗しました。再試行してください。');
+  }
+}
+
+// ── 週次送信 ──
+async function submitWeekly() {
+  if (!document.getElementById('w-branch').value) { showToast('⚠ 拠点名を選択してください'); return; }
+  if (!document.getElementById('w-date').value)   { showToast('⚠ 対象週を入力してください'); return; }
+  if (!getToggleValue('w-increased'))             { showToast('⚠ 残業増加の有無を選択してください'); return; }
+
+  const btn = document.getElementById('w-submit-btn');
+  const txt = document.getElementById('w-submit-txt');
+  btn.classList.add('loading');
+  txt.textContent = '送信中...';
+
+  const payload = {
+    action:      "submit_attendance",
+    type:        "weekly",
+    branch:      document.getElementById('w-branch').value,
+    date:        document.getElementById('w-date').value,
+    overtime:    document.getElementById('w-overtime').value.trim(),
+    increased:   getToggleValue('w-increased'),
+    shiftPlan:   document.getElementById('w-shift-plan').value.trim(),
+    note:        document.getElementById('w-note').value.trim(),
+    submittedAt: new Date().toISOString()
+  };
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('weekly-form-wrap').style.display = 'none';
+    document.getElementById('weekly-success').classList.add('show');
+  } catch(e) {
+    btn.classList.remove('loading');
+    txt.textContent = '送信する';
+    showToast('⚠ 送信に失敗しました。再試行してください。');
+  }
+}
+
+// ── 月次送信 ──
+async function submitMonthly() {
+  if (!document.getElementById('m-branch').value) { showToast('⚠ 拠点名を選択してください'); return; }
+  if (!document.getElementById('m-month').value)  { showToast('⚠ 対象年月を入力してください'); return; }
+  if (!getToggleValue('m-visa-exist'))            { showToast('⚠ 在留申請状況を選択してください'); return; }
+  if (!getToggleValue('m-overseas-exist'))        { showToast('⚠ 帰国・不在者の有無を選択してください'); return; }
+
+  const btn = document.getElementById('m-submit-btn');
+  const txt = document.getElementById('m-submit-txt');
+  btn.classList.add('loading');
+  txt.textContent = '送信中...';
+
+  const payload = {
+    action:        "submit_attendance",
+    type:          "monthly",
+    branch:        document.getElementById('m-branch').value,
+    month:         document.getElementById('m-month').value,
+    visaPending:   document.getElementById('m-visa-pending').value.trim(),
+    visaExist:     getToggleValue('m-visa-exist'),
+    overseas:      document.getElementById('m-overseas').value.trim(),
+    overseasExist: getToggleValue('m-overseas-exist'),
+    note:          document.getElementById('m-note').value.trim(),
+    submittedAt:   new Date().toISOString()
+  };
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('monthly-form-wrap').style.display = 'none';
+    document.getElementById('monthly-success').classList.add('show');
+  } catch(e) {
+    btn.classList.remove('loading');
+    txt.textContent = '送信する';
+    showToast('⚠ 送信に失敗しました。再試行してください。');
+  }
+}
+
+// ── リセット ──
+function resetDaily() {
+  document.getElementById('d-branch').value = '';
+  document.getElementById('d-scheduled').value = '';
+  document.getElementById('d-actual').value = '';
+  document.getElementById('d-absent').value = '';
+  document.getElementById('d-late').value = '';
+  document.getElementById('d-injury-desc').value = '';
+  document.getElementById('d-note').value = '';
+  document.getElementById('d-injury-detail').style.display = 'none';
+  ['d-unauthorized','d-injury','d-workers-comp'].forEach(id => {
+    const g = document.getElementById(id);
+    g.querySelectorAll('.toggle-btn').forEach(b => b.className = 'toggle-btn');
+    delete g.dataset.value;
+  });
+  document.getElementById('rate-display').innerHTML = '充足率：<span>─</span>';
+  document.getElementById('daily-alert').classList.remove('show');
+  document.getElementById('daily-form-wrap').style.display = 'block';
+  document.getElementById('daily-success').classList.remove('show');
+  document.getElementById('d-submit-btn').classList.remove('loading');
+  document.getElementById('d-submit-txt').textContent = '送信する';
+  const today = new Date(); today.setDate(today.getDate() - 1);
+  document.getElementById('d-date').value = toDateStr(today);
+}
+
+function resetForm(type) {
+  const prefix = type === 'weekly' ? 'w' : 'm';
+  document.getElementById(type + '-form-wrap').style.display = 'block';
+  document.getElementById(type + '-success').classList.remove('show');
+  document.getElementById(prefix + '-submit-btn').classList.remove('loading');
+  document.getElementById(prefix + '-submit-txt').textContent = '送信する';
+}
+
+// ── トースト ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
