@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>SSB アラート報告システム</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1929;--s1:#111f33;--s2:#172540;--s3:#1e2e4a;
+  --gold:#c8973a;--gold2:#e8b550;
+  --tx:#dde6f4;--tx2:#7a96b8;--tx3:#3d5470;
+  --red:#e05565;--rbg:rgba(224,85,101,.13);
+  --amb:#e8a030;--abg:rgba(232,160,48,.12);
+  --grn:#2ec98a;--gbg:rgba(46,201,138,.12);
+  --blu:#4b8eff;--bbg:rgba(75,142,255,.12);
+  --pur:#9b70ff;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
+  --r:10px;--r2:14px;--nav-h:58px
+}
+html,body{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.5;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+
+/* ─── Top bar ─── */
+.topbar{position:sticky;top:0;z-index:50;background:var(--s1);border-bottom:1px solid var(--bdr);padding:11px 16px;display:flex;align-items:center;justify-content:space-between}
+.tl{display:flex;align-items:center;gap:10px}
+.tl-bar{width:3px;height:22px;background:linear-gradient(180deg,var(--gold),var(--gold2));border-radius:2px}
+.tl-name{font-size:15px;font-weight:700}
+.tl-sub{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.tr-wrap{display:flex;align-items:center;gap:8px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:pu 2s ease-in-out infinite;flex-shrink:0}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ─── Panels ─── */
+.main{padding:14px 14px 10px}
+.panel{display:none;animation:fu .2s ease}
+.panel.on{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.pg-title{font-size:17px;font-weight:700;margin-bottom:2px}
+.pg-sub{font-size:11px;color:var(--tx2);margin-bottom:14px}
+.sec-h{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.09em;margin:16px 0 8px}
+.sec-h:first-child{margin-top:0}
+
+/* ─── Card ─── */
+.card{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r2);padding:14px 15px;margin-bottom:10px;position:relative;overflow:hidden}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)}
+.card-t{font-size:10px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+
+/* ─── Tags ─── */
+.tag{display:inline-flex;align-items:center;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.tr{background:var(--rbg);color:var(--red)}
+.tg{background:var(--gbg);color:var(--grn)}
+.ta{background:var(--abg);color:var(--amb)}
+.tb{background:var(--bbg);color:var(--blu)}
+
+/* ─── Alert row ─── */
+.al{display:flex;align-items:flex-start;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--bdr);gap:10px}
+.al:last-child{border-bottom:none}
+.al-info{flex:1}
+.al-name{font-size:13px;font-weight:500}
+.al-sub{font-size:10px;color:var(--tx3);margin-top:2px}
+.al-meta{font-size:11px;color:var(--tx2);margin-top:3px}
+.al-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.al-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700}
+.al-date{font-size:10px;color:var(--tx3)}
+
+/* ─── Request button ─── */
+.req-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 11px;
+  border:1px solid var(--bdr2);
+  border-radius:8px;
+  background:var(--s2);
+  color:var(--tx2);
+  font-size:11px;font-weight:500;
+  font-family:'Noto Sans JP',sans-serif;
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.req-btn:hover{background:var(--s3);color:var(--tx);border-color:var(--gold)}
+.req-btn.sent{background:var(--gbg);border-color:var(--grn);color:var(--grn)}
+.req-btn.pending{background:var(--abg);border-color:var(--amb);color:var(--amb)}
+.req-btn svg{width:13px;height:13px;flex-shrink:0}
+
+/* ─── Status badge ─── */
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.sd-red{background:var(--red)}
+.sd-amb{background:var(--amb);animation:pu 1.5s ease-in-out infinite}
+.sd-grn{background:var(--grn)}
+.sd-blu{background:var(--blu)}
+
+/* ─── Inbox ─── */
+.inbox-item{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s;position:relative}
+.inbox-item:hover{border-color:var(--bdr2);background:var(--s3)}
+.inbox-item.unread{border-left:3px solid var(--blu)}
+.inbox-item.unread-red{border-left:3px solid var(--red)}
+.inbox-item.unread-amb{border-left:3px solid var(--amb)}
+.ib-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.ib-from{font-size:12px;font-weight:600}
+.ib-time{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.ib-subject{font-size:13px;font-weight:500;margin-bottom:4px}
+.ib-preview{font-size:11px;color:var(--tx2);line-height:1.5}
+.ib-footer{display:flex;align-items:center;gap:6px;margin-top:7px}
+.unread-badge{width:8px;height:8px;border-radius:50%;background:var(--blu);flex-shrink:0}
+
+/* ─── KPI chips ─── */
+.kpi-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.kpi-c{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;flex:1;min-width:120px}
+.kpi-l{font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.kpi-v{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+.kpi-u{font-size:11px;color:var(--tx2)}
+.kpi-sub{display:flex;align-items:center;gap:5px;margin-top:5px}
+
+/* ─── Divider ─── */
+.dv{height:1px;background:var(--bdr);margin:10px 0}
+
+/* ─── Modal ─── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex;animation:mfade .2s ease}
+@keyframes mfade{from{opacity:0}to{opacity:1}}
+.modal{background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-width:540px;padding:20px 18px;padding-bottom:calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--bdr);max-height:85vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--s3);border-radius:2px;margin:0 auto 18px}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--tx2);margin-bottom:18px}
+.modal-target{background:var(--s2);border-radius:var(--r);padding:11px 13px;margin-bottom:14px}
+.mt-label{font-size:10px;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.mt-row{display:flex;align-items:center;justify-content:space-between}
+.mt-name{font-size:13px;font-weight:500}
+.mt-role{font-size:11px;color:var(--tx2)}
+.modal-msg-label{font-size:11px;color:var(--tx2);margin-bottom:6px}
+.modal-textarea{width:100%;background:var(--s2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--tx);font-size:13px;font-family:'Noto Sans JP',sans-serif;padding:11px 12px;resize:none;outline:none;line-height:1.6}
+.modal-textarea:focus{border-color:var(--blu)}
+.modal-deadline{display:flex;align-items:center;gap:10px;margin:12px 0 16px}
+.modal-deadline label{font-size:12px;color:var(--tx2);flex-shrink:0}
+.deadline-select{flex:1;background:var(--s2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--tx);font-size:13px;font-family:'Noto Sans JP',sans-serif;padding:8px 11px;outline:none}
+.deadline-select:focus{border-color:var(--blu)}
+.modal-btns{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.btn-cancel{padding:12px;border:1px solid var(--bdr2);border-radius:var(--r);background:none;color:var(--tx2);font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer}
+.btn-send{padding:12px;border:none;border-radius:var(--r);background:var(--blu);color:#fff;font-size:13px;font-weight:600;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:all .15s}
+.btn-send:hover{background:#3a7aef}
+.btn-send:active{transform:scale(.97)}
+.btn-send.loading{background:var(--s3);color:var(--tx3);pointer-events:none}
+
+/* ─── Report modal ─── */
+.report-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:110;align-items:flex-end}
+.report-modal-bg.show{display:flex;animation:mfade .2s ease}
+.report-modal{background:var(--s1);border-radius:20px 20px 0 0;width:100%;padding:20px 18px;padding-bottom:calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--bdr);max-height:92vh;overflow-y:auto}
+.rm-close{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;background:var(--s2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tx2);font-size:16px}
+
+/* ─── Form ─── */
+.form-field{margin-bottom:14px}
+.form-label{font-size:11px;color:var(--tx2);margin-bottom:6px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--s2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--tx);font-size:13px;font-family:'Noto Sans JP',sans-serif;padding:10px 12px;outline:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blu)}
+.form-textarea{resize:none;line-height:1.6}
+.form-select option{background:var(--s2)}
+.form-radio-group{display:flex;gap:8px;flex-wrap:wrap}
+.form-radio{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--s2);border:1px solid var(--bdr2);border-radius:var(--r);cursor:pointer;font-size:12px;transition:all .15s}
+.form-radio.selected{border-color:var(--blu);background:var(--bbg);color:var(--blu)}
+.form-radio.selected-red{border-color:var(--red);background:var(--rbg);color:var(--red)}
+.btn-submit{width:100%;padding:14px;border:none;border-radius:var(--r);background:var(--blu);color:#fff;font-size:14px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;margin-top:6px;transition:all .15s}
+.btn-submit:active{transform:scale(.98)}
+.success-screen{text-align:center;padding:30px 10px}
+.success-icon{font-size:48px;margin-bottom:14px}
+.success-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:13px;color:var(--tx2);line-height:1.7}
+
+/* ─── Bottom nav ─── */
+.bot-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--s1);border-top:1px solid var(--bdr);display:flex;padding-bottom:env(safe-area-inset-bottom);height:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 2px;border:none;background:none;color:var(--tx3);font-size:9px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:all .15s;position:relative}
+.bn.on{color:var(--gold2)}
+.bn.on::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--gold);border-radius:0 0 3px 3px}
+.bn-ic{width:20px;height:20px}
+.bn-badge{position:absolute;top:5px;right:calc(50% - 18px);min-width:16px;height:16px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:8px;padding:0 4px;display:flex;align-items:center;justify-content:center}
+.bn-badge-grn{background:var(--grn)}
+
+/* ─── LINE setup guide ─── */
+.setup-step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--bdr);align-items:flex-start}
+.setup-step:last-child{border-bottom:none}
+.step-no{width:26px;height:26px;border-radius:50%;background:var(--bbg);border:1px solid var(--blu);color:var(--blu);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-family:'JetBrains Mono',monospace}
+.step-body{flex:1}
+.step-title{font-size:13px;font-weight:500;margin-bottom:3px}
+.step-desc{font-size:11px;color:var(--tx2);line-height:1.6}
+.step-code{background:var(--s3);border-radius:6px;padding:8px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--grn);margin-top:6px;word-break:break-all}
+
+/* ─── Toast ─── */
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--bdr2);border-radius:20px;padding:9px 18px;font-size:12px;z-index:200;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="tl">
+    <div class="tl-bar"></div>
+    <div>
+      <div class="tl-name">SSB Cockpit</div>
+      <div class="tl-sub">ALERT REPORTING SYSTEM</div>
+    </div>
+  </div>
+  <div class="tr-wrap">
+    <div class="live-dot"></div>
+    <span style="font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace">2026.03.19</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ═══ アラート管理（社長用） ═══ -->
+<div class="panel on" id="p-alerts">
+  <div class="pg-title">アラート管理</div>
+  <div class="pg-sub">各アラートに対して担当課長に報告を求められます</div>
+
+  <!-- サマリー -->
+  <div class="kpi-row">
+    <div class="kpi-c" style="border-color:rgba(224,85,101,.3)">
+      <div class="kpi-l">未対応アラート</div>
+      <div class="kpi-v" style="color:var(--red)">7<span class="kpi-u"> 件</span></div>
+      <div class="kpi-sub"><span class="tag tr">即日対応必要</span></div>
+    </div>
+    <div class="kpi-c" style="border-color:rgba(232,160,48,.3)">
+      <div class="kpi-l">報告待ち</div>
+      <div class="kpi-v" style="color:var(--amb)" id="pending-count">3<span class="kpi-u"> 件</span></div>
+      <div class="kpi-sub"><span class="tag ta">課長回答待ち</span></div>
+    </div>
+    <div class="kpi-c" style="border-color:rgba(46,201,138,.3)">
+      <div class="kpi-l">報告完了（今月）</div>
+      <div class="kpi-v" style="color:var(--grn)" id="done-count">2<span class="kpi-u"> 件</span></div>
+      <div class="kpi-sub"><span class="tag tg">対応済み</span></div>
+    </div>
+  </div>
+
+  <!-- 🔴 在留資格 -->
+  <div class="sec-h">🔴 在留資格　期限超過アラート</div>
+  <div class="card" style="border-color:rgba(224,85,101,.25)">
+    <div id="visa-alerts">
+      <div class="al" id="al-103">
+        <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+          <div class="status-dot sd-red" style="margin-top:5px"></div>
+          <div class="al-info">
+            <div class="al-name">シュレス マガール ニスチュル</div>
+            <div class="al-sub">SSB0000103 / ネパール / 技術・人文知識・国際業務</div>
+            <div class="al-meta">期限：2024/05/12　<span style="color:var(--red);font-weight:600">676日超過</span></div>
+          </div>
+        </div>
+        <div class="al-right">
+          <button class="req-btn" onclick="openRequestModal('al-103','大田拠点　管理担当','在留資格 期限超過（シュレス マガール）','在留カードの更新申請状況を本日中に確認し、申請済み・未申請の別と今後の対応予定を報告してください。','今日中')">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M7 1l6 3-6 3-6-3 6-3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1 4l6 3 6-3M1 7l6 3 6-3" stroke="currentColor" stroke-width="1.3"/></svg>
+            報告を求める
+          </button>
+        </div>
+      </div>
+      <div class="al" id="al-093">
+        <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+          <div class="status-dot sd-red" style="margin-top:5px"></div>
+          <div class="al-info">
+            <div class="al-name">グエン バン アイン</div>
+            <div class="al-sub">SSB0000093 / ベトナム / 技術・人文知識・国際業務</div>
+            <div class="al-meta">期限：2024/10/22　<span style="color:var(--red);font-weight:600">513日超過</span></div>
+          </div>
+        </div>
+        <div class="al-right">
+          <button class="req-btn" onclick="openRequestModal('al-093','京浜島AM拠点　管理担当','在留資格 期限超過（グエン バン アイン）','在留カードの更新申請状況を本日中に確認し、現在の就労可否・申請状況・今後の対応予定を報告してください。','今日中')">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M7 1l6 3-6 3-6-3 6-3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1 4l6 3 6-3M1 7l6 3 6-3" stroke="currentColor" stroke-width="1.3"/></svg>
+            報告を求める
+          </button>
+        </div>
+      </div>
+      <div class="al" id="al-others">
+        <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+          <div class="status-dot sd-red" style="margin-top:5px"></div>
+          <div class="al-info">
+            <div class="al-name">ケ シ ティ カラム　他4名</div>
+            <div class="al-sub">259日・257日・218日・29日・18日超過</div>
+            <div class="al-meta">各拠点管理担当　要確認</div>
+          </div>
+        </div>
+        <div class="al-right">
+          <button class="req-btn sent" id="btn-others" onclick="openRequestModal('al-others','全拠点管理担当（一括）','在留資格 期限超過5名の申請状況確認','期限超過5名（SSB0000120・0000100・0000118・2690210601・SSB0000088）について、各自の申請状況・就労可否・今後の対応予定を本日中に報告してください。','今日中')">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            送信済み
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🟡 30日以内 -->
+  <div class="sec-h">🟡 在留資格　30日以内満了アラート</div>
+  <div class="card" style="border-color:rgba(232,160,48,.2)">
+    <div class="al" id="al-117">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-amb" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">ラミチャネ ラジェシュ</div>
+          <div class="al-sub">SSB0000117 / ネパール</div>
+          <div class="al-meta">期限：2026/04/08　<span style="color:var(--amb);font-weight:600">残20日</span></div>
+        </div>
+      </div>
+      <div class="al-right">
+        <button class="req-btn pending" id="btn-117">
+          <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          回答待ち
+        </button>
+      </div>
+    </div>
+    <div class="al" id="al-052">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-amb" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">マイ ヴァン トウアン</div>
+          <div class="al-sub">SSB0000052 / ベトナム</div>
+          <div class="al-meta">期限：2026/04/13　<span style="color:var(--amb);font-weight:600">残25日</span></div>
+        </div>
+      </div>
+      <div class="al-right">
+        <button class="req-btn" onclick="openRequestModal('al-052','MYB大田拠点　管理担当','在留資格 30日以内満了（マイ ヴァン トウアン）','在留カード更新の申請書類準備状況を確認し、申請済み・準備中・未着手の別と更新申請予定日を報告してください。','今週中')">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M7 1l6 3-6 3-6-3 6-3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1 4l6 3 6-3M1 7l6 3 6-3" stroke="currentColor" stroke-width="1.3"/></svg>
+          報告を求める
+        </button>
+      </div>
+    </div>
+    <div class="al" id="al-039">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-amb" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">スレスタ ゴマ クマリ</div>
+          <div class="al-sub">SSB0000039 / ネパール</div>
+          <div class="al-meta">期限：2026/04/16　<span style="color:var(--amb);font-weight:600">残28日</span></div>
+        </div>
+      </div>
+      <div class="al-right">
+        <button class="req-btn" onclick="openRequestModal('al-039','MYB市川拠点　管理担当','在留資格 30日以内満了（スレスタ ゴマ クマリ）','在留カード更新の申請書類準備状況を確認し、申請済み・準備中・未着手の別と更新申請予定日を報告してください。','今週中')">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M7 1l6 3-6 3-6-3 6-3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1 4l6 3 6-3M1 7l6 3 6-3" stroke="currentColor" stroke-width="1.3"/></svg>
+          報告を求める
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 残業アラート -->
+  <div class="sec-h">⏱ 残業　45h接近アラート（3月）</div>
+  <div class="card" style="border-color:rgba(232,160,48,.2)">
+    <div class="al">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-red" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">チュ ミン（SSB0000064）</div>
+          <div class="al-sub">MYB部門 / 3月累計</div>
+          <div class="al-meta"><span style="color:var(--red);font-weight:600">44.6h</span>　─　36協定上限45hまで残0.4h</div>
+        </div>
+      </div>
+      <div class="al-right">
+        <button class="req-btn" onclick="openRequestModal('al-ot1','MYB　現場課長','残業上限接近（チュ ミン 44.6h）','チュ ミン氏の3月残業が44.6hとなり36協定上限（45h）まで残0.4hです。残りの勤務日のシフト調整計画を本日中に報告してください。','今日中')">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M7 1l6 3-6 3-6-3 6-3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1 4l6 3 6-3M1 7l6 3 6-3" stroke="currentColor" stroke-width="1.3"/></svg>
+          報告を求める
+        </button>
+      </div>
+    </div>
+    <div class="al">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-red" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">ラミチャネ ラゼンドラ（SSB0000014）</div>
+          <div class="al-sub">MYB部門 / 3月累計</div>
+          <div class="al-meta"><span style="color:var(--red);font-weight:600">44.0h</span>　─　残1.0h</div>
+        </div>
+      </div>
+      <div class="al-right">
+        <button class="req-btn" onclick="openRequestModal('al-ot2','MYB　現場課長','残業上限接近（ラミチャネ ラゼンドラ 44.0h）','ラミチャネ ラゼンドラ氏の3月残業が44.0hです。残りの勤務日のシフト調整計画を本日中に報告してください。','今日中')">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M7 1l6 3-6 3-6-3 6-3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1 4l6 3 6-3M1 7l6 3 6-3" stroke="currentColor" stroke-width="1.3"/></svg>
+          報告を求める
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 収益アラート -->
+  <div class="sec-h">📊 収益アラート</div>
+  <div class="card">
+    <div class="al">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-amb" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">市川MYB　費用率 87.1%</div>
+          <div class="al-sub">3月度 Day17時点　基準値：85%</div>
+          <div class="al-meta">基準値を<span style="color:var(--amb);font-weight:600">2.1pt超過</span>　着地予測で改善が必要</div>
+        </div>
+      </div>
+      <div class="al-right">
+        <button class="req-btn" onclick="openRequestModal('al-cost','市川MYB拠点　課長','費用率超過（市川MYB 87.1%）','3月度の費用率が87.1%と基準85%を超過しています。費用超過の主因（人件費・外注費・その他の内訳）と残り日数の対応策を今週中に報告してください。','今週中')">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M7 1l6 3-6 3-6-3 6-3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1 4l6 3 6-3M1 7l6 3 6-3" stroke="currentColor" stroke-width="1.3"/></svg>
+          報告を求める
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 報告受信トレイ ═══ -->
+<div class="panel" id="p-inbox">
+  <div class="pg-title">報告受信トレイ</div>
+  <div class="pg-sub">課長からの報告・回答履歴</div>
+
+  <div class="kpi-row">
+    <div class="kpi-c" style="border-color:rgba(75,142,255,.3)">
+      <div class="kpi-l">未読</div>
+      <div class="kpi-v" style="color:var(--blu)" id="unread-count">2<span class="kpi-u"> 件</span></div>
+    </div>
+    <div class="kpi-c" style="border-color:rgba(232,160,48,.3)">
+      <div class="kpi-l">回答待ち</div>
+      <div class="kpi-v" style="color:var(--amb)">3<span class="kpi-u"> 件</span></div>
+    </div>
+    <div class="kpi-c">
+      <div class="kpi-l">今月完了</div>
+      <div class="kpi-v" style="color:var(--grn)">5<span class="kpi-u"> 件</span></div>
+    </div>
+  </div>
+
+  <div class="sec-h">受信メッセージ</div>
+
+  <div class="inbox-item unread-red" onclick="openReport('r1')">
+    <div class="ib-hd">
+      <div style="display:flex;align-items:center;gap:7px"><div class="unread-badge" style="background:var(--red)"></div><div class="ib-from">MYB大田　管理担当　田中係長</div></div>
+      <div class="ib-time">09:14</div>
+    </div>
+    <div class="ib-subject">【報告】在留資格 期限超過 ─ ケ シ ティ カラム他3名</div>
+    <div class="ib-preview">対象4名の申請状況を確認しました。うち2名は既に更新申請済みで在留資格証明書を保持、1名は書類準備中...</div>
+    <div class="ib-footer"><span class="tag tr">在留資格</span><span class="tag tr">緊急</span></div>
+  </div>
+
+  <div class="inbox-item unread" onclick="openReport('r2')">
+    <div class="ib-hd">
+      <div style="display:flex;align-items:center;gap:7px"><div class="unread-badge"></div><div class="ib-from">MYB　現場課長　山田課長</div></div>
+      <div class="ib-time">08:47</div>
+    </div>
+    <div class="ib-subject">【報告】残業上限接近 ─ チュ ミン・ラミチャネ ラゼンドラ</div>
+    <div class="ib-preview">2名について今月末までのシフトを調整しました。チュ ミン氏は本日から残業ゼロ対応、ラミチャネ氏も...</div>
+    <div class="ib-footer"><span class="tag ta">残業</span><span class="tag tg">対応済み</span></div>
+  </div>
+
+  <div class="inbox-item" onclick="openReport('r3')" style="opacity:.7">
+    <div class="ib-hd">
+      <div class="ib-from">京浜島AM拠点　管理担当　鈴木係長</div>
+      <div class="ib-time">昨日 17:32</div>
+    </div>
+    <div class="ib-subject">【報告】在留資格 30日以内満了 ─ ラミチャネ ラジェシュ</div>
+    <div class="ib-preview">本人に確認しました。更新申請書類は一式揃っており、来週月曜日に入管申請予定とのことです...</div>
+    <div class="ib-footer"><span class="tag ta">在留資格</span><span class="tag tg">申請予定あり</span></div>
+  </div>
+
+  <div class="sec-h" style="margin-top:18px">回答待ち（送信済み）</div>
+
+  <div class="card" style="border-color:rgba(232,160,48,.2)">
+    <div class="al">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-amb" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">在留資格 30日以内満了（マイ ヴァン トウアン）</div>
+          <div class="al-sub">送信先：MYB大田拠点 管理担当　期限：今週中</div>
+          <div class="al-meta">送信日時：2026/03/19 09:00</div>
+        </div>
+      </div>
+      <div class="al-right">
+        <span class="tag ta">未回答</span>
+      </div>
+    </div>
+    <div class="al">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-amb" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">費用率超過（市川MYB 87.1%）</div>
+          <div class="al-sub">送信先：市川MYB拠点 課長　期限：今週中</div>
+          <div class="al-meta">送信日時：2026/03/19 08:30</div>
+        </div>
+      </div>
+      <div class="al-right">
+        <span class="tag ta">未回答</span>
+      </div>
+    </div>
+    <div class="al">
+      <div style="display:flex;gap:8px;align-items:flex-start;flex:1">
+        <div class="status-dot sd-amb" style="margin-top:5px"></div>
+        <div class="al-info">
+          <div class="al-name">在留資格 30日以内満了（スレスタ ゴマ クマリ）</div>
+          <div class="al-sub">送信先：MYB市川拠点 管理担当　期限：今週中</div>
+          <div class="al-meta">送信日時：2026/03/19 09:05</div>
+        </div>
+      </div>
+      <div class="al-right">
+        <span class="tag ta">未回答</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 報告フォーム（課長用） ═══ -->
+<div class="panel" id="p-form">
+  <div class="pg-title">報告フォーム</div>
+  <div class="pg-sub">清水社長からの報告依頼に回答します</div>
+
+  <!-- 依頼内容表示 -->
+  <div class="card" style="border-color:rgba(232,160,48,.25);margin-bottom:14px">
+    <div class="card-t" style="color:var(--amb)">報告依頼内容</div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px" id="form-subject">在留資格 30日以内満了（ラミチャネ ラジェシュ）</div>
+    <div style="font-size:12px;color:var(--tx2);line-height:1.7" id="form-request">在留カード更新の申請書類準備状況を確認し、申請済み・準備中・未着手の別と更新申請予定日を報告してください。</div>
+    <div class="dv"></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx3)">
+      <span>依頼者：清水代表取締役</span>
+      <span>期限：<span style="color:var(--amb)" id="form-deadline">今週中</span></span>
+    </div>
+  </div>
+
+  <!-- フォーム -->
+  <div id="report-form-wrap">
+    <div class="form-field">
+      <label class="form-label">報告者名・所属</label>
+      <input class="form-input" type="text" placeholder="例：田中係長　MYB大田拠点">
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">現状ステータス</label>
+      <div class="form-radio-group" id="status-radios">
+        <div class="form-radio" onclick="selectStatus(this,'対応済み','tg')">✅ 対応済み</div>
+        <div class="form-radio" onclick="selectStatus(this,'対応中','ta')">🔄 対応中</div>
+        <div class="form-radio" onclick="selectStatus(this,'未対応','tr')">⛔ 未対応</div>
+        <div class="form-radio" onclick="selectStatus(this,'確認中','tb')">🔍 確認中</div>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">報告内容（詳細）</label>
+      <textarea class="form-textarea" rows="5" placeholder="具体的な状況・対応内容・今後の予定を記入してください"></textarea>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">対応完了予定日</label>
+      <input class="form-input" type="date" value="2026-04-08">
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">追加で必要なサポート</label>
+      <textarea class="form-textarea" rows="2" placeholder="社長・会社側に動いてほしいことがあれば記入（任意）"></textarea>
+    </div>
+
+    <button class="btn-submit" onclick="submitReport()">報告を送信する</button>
+  </div>
+  <div id="report-success" style="display:none">
+    <div class="success-screen">
+      <div class="success-icon">✅</div>
+      <div class="success-title">報告を送信しました</div>
+      <div class="success-sub">清水社長に通知されました。<br>追加の連絡がある場合は直接ご連絡ください。<br><br>送信日時：2026/03/19 09:32</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LINE設定ガイド ═══ -->
+<div class="panel" id="p-setup">
+  <div class="pg-title">LINE通知　設定ガイド</div>
+  <div class="pg-sub">係長が5分で設定できます。サーバー不要・無料。</div>
+
+  <div class="card" style="border-color:rgba(46,201,138,.2);margin-bottom:14px">
+    <div style="font-size:12px;color:var(--grn);font-weight:600;margin-bottom:6px">✅ 仕組みの全体像</div>
+    <div style="font-size:12px;color:var(--tx2);line-height:1.8">
+      社長がダッシュボードで「報告を求める」ボタンを押す<br>
+      ↓　LINE Notify API（無料）で課長のLINEに通知<br>
+      ↓　課長がLINEのリンクを開いて報告フォームに入力<br>
+      ↓　Google スプレッドシートに自動保存<br>
+      ↓　社長のダッシュボードに回答が表示される
+    </div>
+  </div>
+
+  <div class="sec-h">設定手順</div>
+  <div class="card">
+    <div class="setup-step">
+      <div class="step-no">1</div>
+      <div class="step-body">
+        <div class="step-title">LINE Notify でトークンを取得</div>
+        <div class="step-desc">notify-bot.line.me にアクセス → ログイン → 「マイページ」→「トークンを発行する」→ SSBグループのLINEグループを選択</div>
+        <div class="step-code">https://notify-bot.line.me/ja/</div>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-no">2</div>
+      <div class="step-body">
+        <div class="step-title">Google スプレッドシートを作成</div>
+        <div class="step-desc">Googleドライブで新規スプレッドシートを作成 →「報告受信台帳」と名前をつける → シートIDをコピーしておく</div>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-no">3</div>
+      <div class="step-body">
+        <div class="step-title">Google Apps Script で自動化</div>
+        <div class="step-desc">スプレッドシートの「拡張機能」→「Apps Script」→ 以下のコードを貼り付けてデプロイ</div>
+        <div class="step-code">// LINE通知 + スプレッドシート保存
+function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  // LINEに送信
+  sendLine(data.message, data.token);
+  // シートに保存
+  saveToSheet(data);
+  return ContentService.createTextOutput('ok');
+}</div>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-no">4</div>
+      <div class="step-body">
+        <div class="step-title">ダッシュボードにトークンを設定</div>
+        <div class="step-desc">このHTMLファイルの先頭部分の「LINE_TOKEN」と「GAS_URL」に取得した値を入力するだけで完成</div>
+        <div class="step-code">const LINE_TOKEN = "ここにトークンを貼り付け";
+const GAS_URL = "GASのデプロイURL";</div>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-no">5</div>
+      <div class="step-body">
+        <div class="step-title">課長ごとのLINEグループに分ける（任意）</div>
+        <div class="step-desc">拠点別にLINEグループを作り、それぞれのトークンを取得すると、該当課長だけに通知を送れます</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:rgba(75,142,255,.2)">
+    <div style="font-size:12px;color:var(--blu);font-weight:600;margin-bottom:8px">💡 今すぐ使えるデモモード</div>
+    <div style="font-size:12px;color:var(--tx2);line-height:1.7">このプロトタイプはLINEトークン未設定でも動作します。「報告を求める」ボタンを押すとダッシュボード内で通知・受信の流れを確認できます。本番運用時にトークンを設定してください。</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- リクエストモーダル（社長が課長に送る） -->
+<div class="modal-bg" id="req-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">報告を求める</div>
+    <div class="modal-sub">以下の内容で課長にLINEで報告依頼を送信します</div>
+    <div class="modal-target">
+      <div class="mt-label">送信先</div>
+      <div class="mt-row">
+        <div>
+          <div class="mt-name" id="modal-to">─</div>
+          <div class="mt-role" id="modal-subject-display">─</div>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="#2ec98a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="modal-msg-label">依頼メッセージ（編集可）</div>
+    <textarea class="modal-textarea" id="modal-message" rows="5"></textarea>
+    <div class="modal-deadline">
+      <label>回答期限</label>
+      <select class="deadline-select" id="modal-deadline-sel">
+        <option>今日中</option>
+        <option>明日中</option>
+        <option>今週中</option>
+        <option>来週月曜</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
+      <button class="btn-send" id="modal-send-btn" onclick="sendRequest()">
+        <span id="send-btn-txt">📲 LINEで送信する</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 報告詳細モーダル（受信レポートを読む） -->
+<div class="report-modal-bg" id="report-modal">
+  <div class="report-modal" style="position:relative">
+    <button class="rm-close" onclick="closeReportModal()">×</button>
+    <div class="modal-handle"></div>
+    <div style="font-size:10px;color:var(--grn);font-weight:600;margin-bottom:6px">✅ 報告受信</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px" id="rm-subject">─</div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:14px" id="rm-meta">─</div>
+    <div class="dv"></div>
+    <div id="rm-content"></div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button style="flex:1;padding:11px;border:1px solid var(--bdr2);border-radius:var(--r);background:none;color:var(--tx2);font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer" onclick="closeReportModal()">閉じる</button>
+      <button style="flex:2;padding:11px;border:none;border-radius:var(--r);background:var(--gbg);color:var(--grn);font-size:12px;font-weight:600;font-family:'Noto Sans JP',sans-serif;cursor:pointer" onclick="markDone()">✅ 対応完了として記録</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bot-nav">
+  <button class="bn on" onclick="go('alerts')">
+    <div class="bn-badge">7</div>
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    アラート
+  </button>
+  <button class="bn" onclick="go('inbox')">
+    <div class="bn-badge bn-badge-grn" id="inbox-badge">2</div>
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><path d="M22 13V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M22 13l-4.5 4.5m0 0L16 21m1.5-3.5L19 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    受信トレイ
+  </button>
+  <button class="bn" onclick="go('form')">
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    報告フォーム
+  </button>
+  <button class="bn" onclick="go('setup')">
+    <svg class="bn-ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    LINE設定
+  </button>
+</nav>
+
+<script>
+// ── GAS連携設定 ──────────────────────────────────────────────
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzG-UNiweWdDGMuc_seTLITV7Y3Wc982m___1GqIrOEtM4KdmLGrxIPgsx9tqCNB5cNjQ/exec";
+
+// アラートID → 送信先LINEグループキー
+const ALERT_TO_GROUPS = {
+  "al-103":    ["hr_admin"],
+  "al-093":    ["hr_admin"],
+  "al-others": ["hr_admin"],
+  "al-052":    ["myb_ota", "hr_admin"],
+  "al-039":    ["myb_ichikawa", "hr_admin"],
+  "al-ot1":    ["myb_ota", "myb_ichikawa", "myb_ukishima", "hr_admin"],
+  "al-ot2":    ["myb_ota", "myb_ichikawa", "myb_ukishima", "hr_admin"],
+  "al-cost":   ["myb_ichikawa"],
+};
+
+// ── State ──
+let currentAlertId = '';
+let currentTo = '';
+let currentSubject = '';
+let currentDeadline = '';
+
+// ── Nav ──
+function go(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.bn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  document.querySelectorAll('.bn').forEach(b=>{
+    if(b.getAttribute('onclick')==="go('"+id+"')") b.classList.add('on');
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Request modal ──
+function openRequestModal(alertId, to, subject, message, deadline){
+  currentAlertId = alertId;
+  currentTo = to;
+  currentSubject = subject;
+  currentDeadline = deadline;
+  document.getElementById('modal-to').textContent = to;
+  document.getElementById('modal-subject-display').textContent = subject;
+  document.getElementById('modal-message').value = message;
+  const sel = document.getElementById('modal-deadline-sel');
+  for(let i=0;i<sel.options.length;i++){
+    if(sel.options[i].value===deadline||sel.options[i].text===deadline){
+      sel.selectedIndex=i; break;
+    }
+  }
+  document.getElementById('modal-send-btn').classList.remove('loading');
+  document.getElementById('send-btn-txt').textContent = '📲 LINEで送信する';
+  document.getElementById('req-modal').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('req-modal').classList.remove('show');
+}
+
+function sendRequest(){
+  const btn = document.getElementById('modal-send-btn');
+  const txt = document.getElementById('send-btn-txt');
+  btn.classList.add('loading');
+  txt.textContent = '送信中...';
+
+  const message  = document.getElementById('modal-message').value;
+  const deadline = document.getElementById('modal-deadline-sel').value || currentDeadline;
+  const toGroups = ALERT_TO_GROUPS[currentAlertId] || ["hr_admin"];
+
+  const payload = {
+    action:   "send_request",
+    alertId:  currentAlertId,
+    toGroups: toGroups,
+    to:       currentTo,
+    subject:  currentSubject,
+    message:  message,
+    deadline: deadline,
+    sentAt:   new Date().toISOString()
+  };
+
+  fetch(GAS_URL, {
+    method:  "POST",
+    mode:    "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify(payload)
+  }).then(() => {
+    closeModal();
+    const alertRow = document.getElementById(currentAlertId);
+    if(alertRow){
+      const rowBtn = alertRow.querySelector('.req-btn');
+      if(rowBtn){
+        rowBtn.className = 'req-btn sent';
+        rowBtn.innerHTML = '<svg viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 送信済み';
+        rowBtn.onclick = null;
+      }
+    }
+    showToast('📲 LINEで報告依頼を送信しました');
+  }).catch(err => {
+    btn.classList.remove('loading');
+    txt.textContent = '📲 LINEで送信する';
+    showToast('⚠ 送信に失敗しました。再試行してください。');
+    console.error(err);
+  });
+}
+
+// ── Status radio ──
+function selectStatus(el, val, cls){
+  document.querySelectorAll('.form-radio').forEach(r=>{
+    r.className='form-radio';
+  });
+  el.classList.add('selected');
+  if(cls==='tr') el.classList.add('selected-red');
+}
+
+// ── Submit report ──
+function submitReport(){
+  document.getElementById('report-form-wrap').style.display='none';
+  document.getElementById('report-success').style.display='block';
+  showToast('✅ 報告を送信しました');
+}
+
+// ── Open report ──
+const reports = {
+  r1:{
+    subject:'【報告】在留資格 期限超過 ─ ケ シ ティ カラム他3名',
+    meta:'MYB大田　管理担当　田中係長　/ 2026/03/19 09:14',
+    content:`<div style="font-size:12px;color:#7a96b8;margin-bottom:4px">現状ステータス</div>
+    <div style="margin-bottom:12px"><span class="tag ta">一部対応済み</span></div>
+    <div style="font-size:12px;color:#7a96b8;margin-bottom:4px">報告内容</div>
+    <div style="font-size:13px;line-height:1.8;margin-bottom:12px">対象4名の申請状況を確認しました。<br><br>
+    ・ケ シ ティ カラム（SSB0000120）：更新申請済み。現在「在留資格認定証明書」を保持しており、就労継続可能です。新カード受取は4月末予定。<br>
+    ・ダミ シバハリ（SSB0000100）：申請済み。同様に就労継続可。<br>
+    ・アリヤル ハリ プラサド（SSB0000118）：書類準備中。来週中に申請予定。<br>
+    ・ティマルシナ プラビンドラ（SSB0000088）：本人と連絡が取れており、明日書類を持参予定です。</div>
+    <div style="font-size:12px;color:#7a96b8;margin-bottom:4px">追加サポート依頼</div>
+    <div style="font-size:13px;line-height:1.8">アリヤル氏の書類準備について、社労士の確認が必要な書類があります。顧問社労士への連絡をお願いできますでしょうか。</div>`
+  },
+  r2:{
+    subject:'【報告】残業上限接近 ─ チュ ミン・ラミチャネ ラゼンドラ',
+    meta:'MYB　現場課長　山田課長　/ 2026/03/19 08:47',
+    content:`<div style="font-size:12px;color:#7a96b8;margin-bottom:4px">現状ステータス</div>
+    <div style="margin-bottom:12px"><span class="tag tg">対応済み</span></div>
+    <div style="font-size:12px;color:#7a96b8;margin-bottom:4px">報告内容</div>
+    <div style="font-size:13px;line-height:1.8">2名のシフト調整を完了しました。<br><br>
+    ・チュ ミン（44.6h）：本日より月末まで残業ゼロとします。不足するオペレーションは他のスタッフで分担します。<br>
+    ・ラミチャネ ラゼンドラ（44.0h）：残り1.0hの余裕があります。今月は残業を最小限に抑え、上限を超えないようにします。<br><br>
+    来月以降の恒常的な残業過多については、人員補充を検討いただけますでしょうか。</div>`
+  },
+  r3:{
+    subject:'【報告】在留資格 30日以内満了 ─ ラミチャネ ラジェシュ',
+    meta:'京浜島AM拠点　管理担当　鈴木係長　/ 2026/03/18 17:32',
+    content:`<div style="font-size:12px;color:#7a96b8;margin-bottom:4px">現状ステータス</div>
+    <div style="margin-bottom:12px"><span class="tag tg">申請予定あり</span></div>
+    <div style="font-size:12px;color:#7a96b8;margin-bottom:4px">報告内容</div>
+    <div style="font-size:13px;line-height:1.8">ラミチャネ ラジェシュ氏（SSB0000117）に直接確認しました。<br><br>
+    更新申請に必要な書類（在留カード・パスポート・雇用契約書・源泉徴収票）は全て揃っており、来週月曜日（3月23日）に入国管理局へ申請予定とのことです。<br><br>
+    申請後、受領証コピーを管理部門に提出するよう指示済みです。</div>`
+  }
+};
+
+function openReport(id){
+  const r = reports[id];
+  if(!r) return;
+  document.getElementById('rm-subject').textContent = r.subject;
+  document.getElementById('rm-meta').textContent = r.meta;
+  document.getElementById('rm-content').innerHTML = r.content;
+  document.getElementById('report-modal').classList.add('show');
+}
+
+function closeReportModal(){
+  document.getElementById('report-modal').classList.remove('show');
+}
+
+function markDone(){
+  closeReportModal();
+  showToast('✅ 対応完了として記録しました');
+}
+
+// ── Toast ──
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── Demo: set form to show a request ──
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('form-subject').textContent='在留資格 30日以内満了（ラミチャネ ラジェシュ）';
+  document.getElementById('form-request').textContent='在留カード更新の申請書類準備状況を確認し、申請済み・準備中・未着手の別と更新申請予定日を報告してください。';
+  document.getElementById('form-deadline').textContent='今週中';
+});
+</script>
+</body>
+</html>
