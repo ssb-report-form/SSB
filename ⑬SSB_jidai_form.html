@@ -649,7 +649,7 @@ function sendJidai(mode) {
   if (!reporterEl?.value.trim()) { showToast("⚠ 入力者を選択してください", "err"); return; }
 
   if (mode === "input") {
-    const hasAny = [...GROUP1_FIELDS, ...GROUP2_FIELDS].some(f => getVal("i", f) !== "");
+    const hasAny = ALL_FIELDS.some(f => getVal("i", f) !== "");
     if (!hasAny) { showToast("⚠ 最低1業態の時間を入力してください", "err"); return; }
   }
 
