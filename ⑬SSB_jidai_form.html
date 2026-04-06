@@ -92,7 +92,7 @@ body{padding:0 0 80px}
   <div class="hd-bar"></div>
   <div>
     <div class="hd-title">6業態 人時入力フォーム</div>
-    <div class="hd-sub">WS JIDAI INPUT · ホールセラー事業部</div>
+    <div class="hd-sub">WS NINJI INPUT · ホールセラー事業部</div>
   </div>
 </div>
 
@@ -194,9 +194,15 @@ body{padding:0 0 80px}
     </div>
   </div>
 
-  <!-- ② 業務外・大和家別 -->
+  <!-- ②合計バー（①合計＋ハーブ＋大庄物販） -->
+  <div class="total-bar" style="margin-bottom:10px;background:rgba(46,201,138,.06);border-color:rgba(46,201,138,.22)">
+    <div class="total-label" style="color:var(--grn)">② 業態合計（①＋ハーブ＋大庄物販）</div>
+    <div class="total-val" id="total2-display" style="color:var(--grn)">0.00<span>h</span></div>
+  </div>
+
+  <!-- ③ 業務外・大和家別 -->
   <div class="sec">
-    <div class="sec-title">② 業務外時間・大和家別</div>
+    <div class="sec-title">③ 業務外時間・大和家別</div>
     <div class="form-block">
       <div class="form-label">業務外時間 <span class="opt">任意</span> <span class="unit">h</span></div>
       <input id="i-gyomu_gai" type="number" step="0.01" min="0" class="form-input" placeholder="0.00">
@@ -207,23 +213,28 @@ body{padding:0 0 80px}
     </div>
   </div>
 
-  <!-- ②合計バー -->
+  <!-- ③合計バー（②合計＋業務外時間＋大和家別） -->
   <div class="total-bar" style="margin-bottom:10px;background:rgba(75,142,255,.06);border-color:rgba(75,142,255,.2)">
-    <div class="total-label" style="color:var(--blu)">② 業務外合計</div>
-    <div class="total-val" id="total2-display" style="color:var(--blu)">0.00<span>h</span></div>
+    <div class="total-label" style="color:var(--blu)">③ 全体合計（②＋業務外＋大和家別）</div>
+    <div class="total-val" id="total3-display" style="color:var(--blu)">0.00<span>h</span></div>
   </div>
 
-  <!-- ③ 合計サマリー -->
+  <!-- 合計サマリー -->
   <div class="total-bar" style="margin-bottom:16px;flex-direction:column;gap:8px;align-items:stretch">
-    <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.06em;margin-bottom:2px">③ 合計サマリー</div>
+    <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.06em;margin-bottom:2px">合計サマリー</div>
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:12px;color:var(--gold);font-weight:600">①業態合計</div>
-      <div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace"><span id="sum1-display">0.00</span><span style="font-size:11px;color:var(--tx3);margin-left:3px">h</span></div>
+      <div style="font-size:12px;color:var(--gold);font-weight:600">① ばんから〜Azizm深夜</div>
+      <div style="font-size:17px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace"><span id="sum1-display">0.00</span><span style="font-size:11px;color:var(--tx3);margin-left:3px">h</span></div>
     </div>
     <div style="height:1px;background:var(--bdr)"></div>
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:12px;color:var(--blu);font-weight:600">②業務外合計</div>
-      <div style="font-size:18px;font-weight:700;color:var(--blu);font-family:'JetBrains Mono',monospace"><span id="sum2-display">0.00</span><span style="font-size:11px;color:var(--tx3);margin-left:3px">h</span></div>
+      <div style="font-size:12px;color:var(--grn);font-weight:600">② ①＋ハーブ＋大庄物販</div>
+      <div style="font-size:17px;font-weight:700;color:var(--grn);font-family:'JetBrains Mono',monospace"><span id="sum2-display">0.00</span><span style="font-size:11px;color:var(--tx3);margin-left:3px">h</span></div>
+    </div>
+    <div style="height:1px;background:var(--bdr)"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:12px;color:var(--blu);font-weight:600">③ ②＋業務外＋大和家別</div>
+      <div style="font-size:17px;font-weight:700;color:var(--blu);font-family:'JetBrains Mono',monospace"><span id="sum3-display">0.00</span><span style="font-size:11px;color:var(--tx3);margin-left:3px">h</span></div>
     </div>
   </div>
 
@@ -318,9 +329,9 @@ body{padding:0 0 80px}
     </div>
   </div>
 
-  <!-- ② 業務外・大和家別（修正） -->
+  <!-- ③ 業務外・大和家別（修正） -->
   <div class="sec">
-    <div class="sec-title">② 業務外時間・大和家別（修正）</div>
+    <div class="sec-title">③ 業務外時間・大和家別（修正）</div>
     <div class="form-block">
       <div class="form-label">業務外時間 <span class="opt">修正時のみ</span> <span class="unit">h</span></div>
       <input id="f-gyomu_gai" type="number" step="0.01" min="0" class="form-input" placeholder="空白=変更なし">
@@ -415,8 +426,8 @@ const ALL_FIELDS    = [...GROUP1_FIELDS, ...GROUP2_FIELDS, ...EXTRA_FIELDS];
   document.getElementById("i-date").value = today;
   document.getElementById("f-date").value = today;
 
-  // 合計リアルタイム計算
-  [...GROUP1_FIELDS, ...EXTRA_FIELDS].forEach(f => {
+  // 合計リアルタイム計算（全フィールドを監視）
+  ALL_FIELDS.forEach(f => {
     const el = document.getElementById("i-" + f);
     if (el) el.addEventListener("input", updateTotals);
   });
@@ -424,12 +435,21 @@ const ALL_FIELDS    = [...GROUP1_FIELDS, ...GROUP2_FIELDS, ...EXTRA_FIELDS];
 })();
 
 function updateTotals() {
-  const t1 = GROUP1_FIELDS.reduce((s, f) => s + (parseFloat(document.getElementById("i-"+f)?.value) || 0), 0);
-  const t2 = EXTRA_FIELDS.reduce((s, f)  => s + (parseFloat(document.getElementById("i-"+f)?.value) || 0), 0);
+  const v = f => parseFloat(document.getElementById("i-"+f)?.value) || 0;
+  // ①合計：ばんから〜Azizm深夜
+  const t1 = GROUP1_FIELDS.reduce((s, f) => s + v(f), 0);
+  // ②合計：①＋ハーブ＋大庄物販
+  const t2 = t1 + v("herb") + v("daishobuhan");
+  // ③合計：②＋業務外時間＋大和家別
+  const t3 = t2 + EXTRA_FIELDS.reduce((s, f) => s + v(f), 0);
+
+  const span = s => `<span style='font-size:11px;color:var(--tx3);margin-left:3px'>h</span>${s}`;
   document.getElementById("total1-display").innerHTML = t1.toFixed(2) + "<span>h</span>";
-  document.getElementById("total2-display").innerHTML = t2.toFixed(2) + "<span style='font-size:11px;color:var(--tx3);margin-left:3px'>h</span>";
-  document.getElementById("sum1-display").textContent  = t1.toFixed(2);
-  document.getElementById("sum2-display").textContent  = t2.toFixed(2);
+  document.getElementById("total2-display").innerHTML = t2.toFixed(2) + "<span>h</span>";
+  document.getElementById("total3-display").innerHTML = t3.toFixed(2) + "<span>h</span>";
+  document.getElementById("sum1-display").textContent = t1.toFixed(2);
+  document.getElementById("sum2-display").textContent = t2.toFixed(2);
+  document.getElementById("sum3-display").textContent = t3.toFixed(2);
 }
 
 // 曜日別スケジュールデータ
@@ -518,25 +538,28 @@ function loadJidaiData() {
       }
       const r = res.record;
 
-      // ①合計・②合計（スプレッドシートから取得 or 再計算）
-      const total1 = r.total1 !== undefined && r.total1 !== ""
+      // ①②③合計（スプレッドシートから取得 or 再計算）
+      const t1 = r.total1 !== undefined && r.total1 !== ""
         ? parseFloat(r.total1) || 0
         : GROUP1_FIELDS.reduce((s,k) => s+(parseFloat(r[k])||0), 0);
-      const total2 = r.total2 !== undefined && r.total2 !== ""
+      const t2 = r.total2 !== undefined && r.total2 !== ""
         ? parseFloat(r.total2) || 0
-        : EXTRA_FIELDS.reduce((s,k) => s+(parseFloat(r[k])||0), 0);
+        : t1 + (parseFloat(r.herb)||0) + (parseFloat(r.daishobuhan)||0);
+      const t3 = r.total3 !== undefined && r.total3 !== ""
+        ? parseFloat(r.total3) || 0
+        : t2 + EXTRA_FIELDS.reduce((s,k) => s+(parseFloat(r[k])||0), 0);
 
-      // ①グループ行
-      const g1Keys   = ["bankara","mensyoku","kagetsu","jjtofu","azizm_day","azizm_night"];
-      const g1Rows   = g1Keys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===g1Keys.length-1)).join("");
+      // ①グループ行（ばんから〜Azizm深夜）
+      const g1Keys = ["bankara","mensyoku","kagetsu","jjtofu","azizm_day","azizm_night"];
+      const g1Rows = g1Keys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===g1Keys.length-1)).join("");
 
-      // 追加業態行
-      const g2Keys   = ["herb","daishobuhan"];
-      const g2Rows   = g2Keys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===g2Keys.length-1)).join("");
+      // 追加業態行（ハーブ・大庄物販）
+      const g2Keys = ["herb","daishobuhan"];
+      const g2Rows = g2Keys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===g2Keys.length-1)).join("");
 
-      // ②グループ行
-      const exKeys   = ["gyomu_gai","yamato"];
-      const exRows   = exKeys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===exKeys.length-1)).join("");
+      // ③グループ行（業務外・大和家別）
+      const exKeys = ["gyomu_gai","yamato"];
+      const exRows = exKeys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===exKeys.length-1)).join("");
 
       result.innerHTML = `
         <div class="sec" style="padding:0;overflow:hidden;margin-bottom:12px">
@@ -546,23 +569,24 @@ function loadJidaiData() {
           </div>
 
           <!-- ①グループ -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.05em;background:rgba(200,151,58,.06)">① 業態別</div>
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.05em;background:rgba(200,151,58,.06)">① ばんから〜Azizm深夜</div>
           <table style="width:100%;border-collapse:collapse">
             <tbody>${g1Rows}</tbody>
-            ${makeTotalRow("① 業態合計", total1, "var(--gold)")}
+            ${makeTotalRow("①合計", t1, "var(--gold)")}
           </table>
 
-          <!-- 追加業態 -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--tx2);letter-spacing:.05em;background:rgba(255,255,255,.03);border-top:1px solid var(--bdr)">追加業態</div>
+          <!-- 追加業態＋②合計 -->
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--grn);letter-spacing:.05em;background:rgba(46,201,138,.06);border-top:1px solid var(--bdr)">② ①＋ハーブ＋大庄物販</div>
           <table style="width:100%;border-collapse:collapse">
             <tbody>${g2Rows}</tbody>
+            ${makeTotalRow("②合計（①＋ハーブ＋大庄物販）", t2, "var(--grn)")}
           </table>
 
-          <!-- ②グループ -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--blu);letter-spacing:.05em;background:rgba(75,142,255,.06);border-top:1px solid var(--bdr)">② 業務外・大和家別</div>
+          <!-- ③グループ -->
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--blu);letter-spacing:.05em;background:rgba(75,142,255,.06);border-top:1px solid var(--bdr)">③ ②＋業務外時間＋大和家別</div>
           <table style="width:100%;border-collapse:collapse">
             <tbody>${exRows}</tbody>
-            ${makeTotalRow("② 業務外合計", total2, "var(--blu)")}
+            ${makeTotalRow("③合計（全体）", t3, "var(--blu)")}
           </table>
 
           <div style="padding:10px 14px;font-size:10px;color:var(--tx3);text-align:right;border-top:1px solid var(--bdr)">更新：${r.timestamp || "—"}</div>
