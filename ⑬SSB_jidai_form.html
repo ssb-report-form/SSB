@@ -120,7 +120,9 @@ body{padding:0 0 80px}
     </div>
     <div class="form-block">
       <div class="form-label">入力者 <span class="req">必須</span></div>
-      <input id="i-reporter" type="text" class="form-input" placeholder="例：タオ">
+      <select id="i-reporter" class="form-select">
+        <option value="">-- 読込中 --</option>
+      </select>
     </div>
   </div>
 
@@ -261,7 +263,9 @@ body{padding:0 0 80px}
     </div>
     <div class="form-block">
       <div class="form-label">入力者 <span class="req">必須</span></div>
-      <input id="f-reporter" type="text" class="form-input" placeholder="例：タオ">
+      <select id="f-reporter" class="form-select">
+        <option value="">-- 読込中 --</option>
+      </select>
     </div>
   </div>
 
@@ -432,7 +436,30 @@ const ALL_FIELDS    = [...GROUP1_FIELDS, ...GROUP2_FIELDS, ...EXTRA_FIELDS];
     if (el) el.addEventListener("input", updateTotals);
   });
   updateTotals();
+
+  // 入力者マスタを取得してセレクトボックスに反映
+  loadReporters();
 })();
+
+function loadReporters() {
+  fetch(GAS_URL + "?action=get_reporters")
+    .then(r => r.json())
+    .then(res => {
+      const list = res.reporters || [];
+      ["i-reporter", "f-reporter"].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- 選択してください --</option>'
+          + list.map(name => `<option value="${name}">${name}</option>`).join("");
+      });
+    })
+    .catch(() => {
+      ["i-reporter", "f-reporter"].forEach(id => {
+        const sel = document.getElementById(id);
+        if (sel) sel.innerHTML = '<option value="">-- 取得失敗（再読込してください）--</option>';
+      });
+    });
+}
 
 function updateTotals() {
   const v = f => parseFloat(document.getElementById("i-"+f)?.value) || 0;
@@ -611,7 +638,7 @@ function sendJidai(mode) {
   if (!date) { showToast("⚠ 日付を入力してください", "err"); return; }
 
   const reporterEl = document.getElementById(prefix + "-reporter");
-  if (!reporterEl?.value.trim()) { showToast("⚠ 入力者を入力してください", "err"); return; }
+  if (!reporterEl?.value.trim()) { showToast("⚠ 入力者を選択してください", "err"); return; }
 
   if (mode === "input") {
     const hasAny = [...GROUP1_FIELDS, ...GROUP2_FIELDS].some(f => getVal("i", f) !== "");
