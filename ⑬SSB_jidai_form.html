@@ -120,9 +120,8 @@ body{padding:0 0 80px}
     </div>
     <div class="form-block">
       <div class="form-label">入力者 <span class="req">必須</span></div>
-      <select id="i-reporter" class="form-select">
-        <option value="">-- 読込中 --</option>
-      </select>
+      <input id="i-reporter" type="text" class="form-input" placeholder="選択または入力" list="reporter-list" autocomplete="off">
+      <datalist id="reporter-list"></datalist>
     </div>
   </div>
 
@@ -272,9 +271,8 @@ body{padding:0 0 80px}
     </div>
     <div class="form-block">
       <div class="form-label">入力者 <span class="req">必須</span></div>
-      <select id="f-reporter" class="form-select">
-        <option value="">-- 読込中 --</option>
-      </select>
+      <input id="f-reporter" type="text" class="form-input" placeholder="選択または入力" list="reporter-list-f" autocomplete="off">
+      <datalist id="reporter-list-f"></datalist>
     </div>
   </div>
 
@@ -456,18 +454,14 @@ function loadReporters() {
     .then(r => r.json())
     .then(res => {
       const list = res.reporters || [];
-      ["i-reporter", "f-reporter"].forEach(id => {
-        const sel = document.getElementById(id);
-        if (!sel) return;
-        sel.innerHTML = '<option value="">-- 選択してください --</option>'
-          + list.map(name => `<option value="${name}">${name}</option>`).join("");
-      });
+      const opts = list.map(name => `<option value="${name}">`).join("");
+      const dl1 = document.getElementById("reporter-list");
+      if (dl1) dl1.innerHTML = opts;
+      const dl2 = document.getElementById("reporter-list-f");
+      if (dl2) dl2.innerHTML = opts;
     })
     .catch(() => {
-      ["i-reporter", "f-reporter"].forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) sel.innerHTML = '<option value="">-- 取得失敗（再読込してください）--</option>';
-      });
+      // テキスト入力なので手動入力で代替可能。何もしない。
     });
 }
 
