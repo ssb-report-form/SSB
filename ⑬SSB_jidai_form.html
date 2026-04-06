@@ -126,117 +126,126 @@ body{padding:0 0 80px}
     </div>
   </div>
 
-  <!-- ① 6業態 -->
+  <!-- ① ばんから〜東京純豆腐 -->
   <div class="sec">
-    <div class="sec-title">① 業態別 作業時間</div>
+    <div class="sec-title">① ばんから・麵食・花月・東京純豆腐</div>
     <div class="gyotai-grid">
-
       <div class="gyotai-card">
         <div class="gyotai-name">ばんから</div>
         <input id="i-bankara" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">麵食</div>
         <input id="i-mensyoku" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">花月</div>
         <input id="i-kagetsu" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">東京純豆腐</div>
         <input id="i-jjtofu" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
-      <div class="gyotai-card">
-        <div class="gyotai-name">Azizm通常</div>
-        <input id="i-azizm_day" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-
-      <div class="gyotai-card">
-        <div class="gyotai-name">Azizm深夜</div>
-        <input id="i-azizm_night" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-
     </div>
   </div>
 
   <!-- ①合計バー -->
   <div class="total-bar" style="margin-bottom:10px;background:rgba(200,151,58,.08);border-color:rgba(200,151,58,.25)">
-    <div class="total-label" style="color:var(--gold)">① 業態合計</div>
+    <div class="total-label" style="color:var(--gold)">①合計</div>
     <div class="total-val" id="total1-display">0.00<span>h</span></div>
   </div>
 
-  <!-- 追加業態（ハーブ・大庄物販） -->
+  <!-- 業務外時間 -->
   <div class="sec">
-    <div class="sec-title">追加業態</div>
-    <div class="gyotai-grid">
+    <div class="sec-title">業務外時間</div>
+    <div class="form-block">
+      <div class="form-label">業務外時間 <span class="opt">任意</span> <span class="unit">h</span></div>
+      <input id="i-gyomu_gai" type="number" step="0.01" min="0" class="form-input" placeholder="0.00">
+    </div>
+  </div>
 
+  <!-- ②合計バー（①合計＋業務外時間） -->
+  <div class="total-bar" style="margin-bottom:10px;background:rgba(46,201,138,.06);border-color:rgba(46,201,138,.22)">
+    <div class="total-label" style="color:var(--grn)">②合計（①＋業務外時間）</div>
+    <div class="total-val" id="total2-display" style="color:var(--grn)">0.00<span>h</span></div>
+  </div>
+
+  <!-- ③ Azizm・大和家別 -->
+  <div class="sec">
+    <div class="sec-title">③ Azizm通常・Azizm深夜・大和家別</div>
+    <div class="gyotai-grid">
+      <div class="gyotai-card">
+        <div class="gyotai-name">Azizm通常</div>
+        <input id="i-azizm_day" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
+        <div class="gyotai-unit">時間（h）</div>
+      </div>
+      <div class="gyotai-card">
+        <div class="gyotai-name">Azizm深夜</div>
+        <input id="i-azizm_night" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
+        <div class="gyotai-unit">時間（h）</div>
+      </div>
+      <div class="gyotai-card" style="grid-column:1/-1">
+        <div class="gyotai-name">大和家別</div>
+        <input id="i-yamato" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00" style="max-width:200px">
+        <div class="gyotai-unit">時間（h）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③合計バー -->
+  <div class="total-bar" style="margin-bottom:10px;background:rgba(153,102,255,.08);border-color:rgba(153,102,255,.25)">
+    <div class="total-label" style="color:#9966FF">③合計（Azizm通常＋深夜＋大和家別）</div>
+    <div class="total-val" id="total3-display" style="color:#9966FF">0.00<span>h</span></div>
+  </div>
+
+  <!-- ④ ハーブ・大庄物販 -->
+  <div class="sec">
+    <div class="sec-title">④ ハーブ・大庄物販</div>
+    <div class="gyotai-grid">
       <div class="gyotai-card">
         <div class="gyotai-name">ハーブ</div>
         <input id="i-herb" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">大庄物販</div>
         <input id="i-daishobuhan" type="number" step="0.01" min="0" class="gyotai-input" placeholder="0.00">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
     </div>
   </div>
 
-  <!-- ②合計バー（①合計＋ハーブ＋大庄物販） -->
-  <div class="total-bar" style="margin-bottom:10px;background:rgba(46,201,138,.06);border-color:rgba(46,201,138,.22)">
-    <div class="total-label" style="color:var(--grn)">② 業態合計（①＋ハーブ＋大庄物販）</div>
-    <div class="total-val" id="total2-display" style="color:var(--grn)">0.00<span>h</span></div>
-  </div>
-
-  <!-- ③ 業務外・大和家別 -->
-  <div class="sec">
-    <div class="sec-title">③ 業務外時間・大和家別</div>
-    <div class="form-block">
-      <div class="form-label">業務外時間 <span class="opt">任意</span> <span class="unit">h</span></div>
-      <input id="i-gyomu_gai" type="number" step="0.01" min="0" class="form-input" placeholder="0.00">
-    </div>
-    <div class="form-block">
-      <div class="form-label">大和家別 <span class="opt">任意</span> <span class="unit">h</span></div>
-      <input id="i-yamato" type="number" step="0.01" min="0" class="form-input" placeholder="0.00">
-    </div>
-  </div>
-
-  <!-- ③合計バー（②合計＋業務外時間＋大和家別） -->
-  <div class="total-bar" style="margin-bottom:10px;background:rgba(75,142,255,.06);border-color:rgba(75,142,255,.2)">
-    <div class="total-label" style="color:var(--blu)">③ 全体合計（②＋業務外＋大和家別）</div>
-    <div class="total-val" id="total3-display" style="color:var(--blu)">0.00<span>h</span></div>
+  <!-- ④合計バー -->
+  <div class="total-bar" style="margin-bottom:10px;background:rgba(46,201,192,.07);border-color:rgba(46,201,192,.22)">
+    <div class="total-label" style="color:#2EC9C0">④合計（ハーブ＋大庄物販）</div>
+    <div class="total-val" id="total4-display" style="color:#2EC9C0">0.00<span>h</span></div>
   </div>
 
   <!-- 合計サマリー -->
   <div class="total-bar" style="margin-bottom:16px;flex-direction:column;gap:8px;align-items:stretch">
     <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.06em;margin-bottom:2px">合計サマリー</div>
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:12px;color:var(--gold);font-weight:600">① ばんから〜Azizm深夜</div>
-      <div style="font-size:17px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace"><span id="sum1-display">0.00</span><span style="font-size:11px;color:var(--tx3);margin-left:3px">h</span></div>
+      <div style="font-size:12px;color:var(--gold);font-weight:600">① ばんから〜東京純豆腐</div>
+      <div style="font-size:16px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace"><span id="sum1-display">0.00</span><span style="font-size:10px;color:var(--tx3);margin-left:3px">h</span></div>
     </div>
     <div style="height:1px;background:var(--bdr)"></div>
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:12px;color:var(--grn);font-weight:600">② ①＋ハーブ＋大庄物販</div>
-      <div style="font-size:17px;font-weight:700;color:var(--grn);font-family:'JetBrains Mono',monospace"><span id="sum2-display">0.00</span><span style="font-size:11px;color:var(--tx3);margin-left:3px">h</span></div>
+      <div style="font-size:12px;color:var(--grn);font-weight:600">② ①＋業務外時間</div>
+      <div style="font-size:16px;font-weight:700;color:var(--grn);font-family:'JetBrains Mono',monospace"><span id="sum2-display">0.00</span><span style="font-size:10px;color:var(--tx3);margin-left:3px">h</span></div>
     </div>
     <div style="height:1px;background:var(--bdr)"></div>
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:12px;color:var(--blu);font-weight:600">③ ②＋業務外＋大和家別</div>
-      <div style="font-size:17px;font-weight:700;color:var(--blu);font-family:'JetBrains Mono',monospace"><span id="sum3-display">0.00</span><span style="font-size:11px;color:var(--tx3);margin-left:3px">h</span></div>
+      <div style="font-size:12px;color:#9966FF;font-weight:600">③ Azizm通常＋深夜＋大和家別</div>
+      <div style="font-size:16px;font-weight:700;color:#9966FF;font-family:'JetBrains Mono',monospace"><span id="sum3-display">0.00</span><span style="font-size:10px;color:var(--tx3);margin-left:3px">h</span></div>
+    </div>
+    <div style="height:1px;background:var(--bdr)"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:12px;color:#2EC9C0;font-weight:600">④ ハーブ＋大庄物販</div>
+      <div style="font-size:16px;font-weight:700;color:#2EC9C0;font-family:'JetBrains Mono',monospace"><span id="sum4-display">0.00</span><span style="font-size:10px;color:var(--tx3);margin-left:3px">h</span></div>
     </div>
   </div>
 
@@ -269,80 +278,78 @@ body{padding:0 0 80px}
     </div>
   </div>
 
-  <!-- ① 6業態（修正） -->
+  <!-- ① ばんから〜東京純豆腐（修正） -->
   <div class="sec">
-    <div class="sec-title">① 業態別 作業時間（修正）</div>
+    <div class="sec-title">① ばんから・麵食・花月・東京純豆腐（修正）</div>
     <div class="gyotai-grid">
-
       <div class="gyotai-card">
         <div class="gyotai-name">ばんから</div>
         <input id="f-bankara" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">麵食</div>
         <input id="f-mensyoku" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">花月</div>
         <input id="f-kagetsu" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">東京純豆腐</div>
         <input id="f-jjtofu" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
         <div class="gyotai-unit">時間（h）</div>
       </div>
+    </div>
+  </div>
 
+  <!-- 業務外時間（修正） -->
+  <div class="sec">
+    <div class="sec-title">業務外時間（修正）</div>
+    <div class="form-block">
+      <div class="form-label">業務外時間 <span class="opt">修正時のみ</span> <span class="unit">h</span></div>
+      <input id="f-gyomu_gai" type="number" step="0.01" min="0" class="form-input" placeholder="空白=変更なし">
+    </div>
+  </div>
+
+  <!-- ③ Azizm・大和家別（修正） -->
+  <div class="sec">
+    <div class="sec-title">③ Azizm通常・Azizm深夜・大和家別（修正）</div>
+    <div class="gyotai-grid">
       <div class="gyotai-card">
         <div class="gyotai-name">Azizm通常</div>
         <input id="f-azizm_day" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">Azizm深夜</div>
         <input id="f-azizm_night" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
+      <div class="gyotai-card" style="grid-column:1/-1">
+        <div class="gyotai-name">大和家別</div>
+        <input id="f-yamato" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし" style="max-width:200px">
+        <div class="gyotai-unit">時間（h）</div>
+      </div>
     </div>
   </div>
 
-  <!-- 追加業態（修正） -->
+  <!-- ④ ハーブ・大庄物販（修正） -->
   <div class="sec">
-    <div class="sec-title">追加業態（修正）</div>
+    <div class="sec-title">④ ハーブ・大庄物販（修正）</div>
     <div class="gyotai-grid">
-
       <div class="gyotai-card">
         <div class="gyotai-name">ハーブ</div>
         <input id="f-herb" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
       <div class="gyotai-card">
         <div class="gyotai-name">大庄物販</div>
         <input id="f-daishobuhan" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
         <div class="gyotai-unit">時間（h）</div>
       </div>
-
-    </div>
-  </div>
-
-  <!-- ③ 業務外・大和家別（修正） -->
-  <div class="sec">
-    <div class="sec-title">③ 業務外時間・大和家別（修正）</div>
-    <div class="form-block">
-      <div class="form-label">業務外時間 <span class="opt">修正時のみ</span> <span class="unit">h</span></div>
-      <input id="f-gyomu_gai" type="number" step="0.01" min="0" class="form-input" placeholder="空白=変更なし">
-    </div>
-    <div class="form-block">
-      <div class="form-label">大和家別 <span class="opt">修正時のみ</span> <span class="unit">h</span></div>
-      <input id="f-yamato" type="number" step="0.01" min="0" class="form-input" placeholder="空白=変更なし">
     </div>
   </div>
 
@@ -416,10 +423,13 @@ body{padding:0 0 80px}
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzG-UNiweWdDGMuc_seTLITV7Y3Wc982m___1GqIrOEtM4KdmLGrxIPgsx9tqCNB5cNjQ/exec";
 
-const GROUP1_FIELDS = ["bankara","mensyoku","kagetsu","jjtofu","azizm_day","azizm_night"];
-const GROUP2_FIELDS = ["herb","daishobuhan"];
-const EXTRA_FIELDS  = ["gyomu_gai","yamato"];
-const ALL_FIELDS    = [...GROUP1_FIELDS, ...GROUP2_FIELDS, ...EXTRA_FIELDS];
+// ①: ばんから〜東京純豆腐
+const GROUP1_FIELDS = ["bankara","mensyoku","kagetsu","jjtofu"];
+// ③: Azizm通常・深夜・大和家別
+const GROUP3_FIELDS = ["azizm_day","azizm_night","yamato"];
+// ④: ハーブ・大庄物販
+const GROUP4_FIELDS = ["herb","daishobuhan"];
+const ALL_FIELDS    = [...GROUP1_FIELDS, "gyomu_gai", ...GROUP3_FIELDS, ...GROUP4_FIELDS];
 
 // 今日の日付をデフォルトセット（ローカル時刻）
 (function(){
@@ -463,20 +473,20 @@ function loadReporters() {
 
 function updateTotals() {
   const v = f => parseFloat(document.getElementById("i-"+f)?.value) || 0;
-  // ①合計：ばんから〜Azizm深夜
-  const t1 = GROUP1_FIELDS.reduce((s, f) => s + v(f), 0);
-  // ②合計：①＋ハーブ＋大庄物販
-  const t2 = t1 + v("herb") + v("daishobuhan");
-  // ③合計：②＋業務外時間＋大和家別
-  const t3 = t2 + EXTRA_FIELDS.reduce((s, f) => s + v(f), 0);
+  const t1 = GROUP1_FIELDS.reduce((s, f) => s + v(f), 0);   // ①: ばんから〜東京純豆腐
+  const t2 = t1 + v("gyomu_gai");                           // ②: ①＋業務外時間
+  const t3 = GROUP3_FIELDS.reduce((s, f) => s + v(f), 0);   // ③: Azizm通常＋深夜＋大和家別
+  const t4 = GROUP4_FIELDS.reduce((s, f) => s + v(f), 0);   // ④: ハーブ＋大庄物販
 
-  const span = s => `<span style='font-size:11px;color:var(--tx3);margin-left:3px'>h</span>${s}`;
-  document.getElementById("total1-display").innerHTML = t1.toFixed(2) + "<span>h</span>";
-  document.getElementById("total2-display").innerHTML = t2.toFixed(2) + "<span>h</span>";
-  document.getElementById("total3-display").innerHTML = t3.toFixed(2) + "<span>h</span>";
+  const h = "<span>h</span>";
+  document.getElementById("total1-display").innerHTML = t1.toFixed(2) + h;
+  document.getElementById("total2-display").innerHTML = t2.toFixed(2) + h;
+  document.getElementById("total3-display").innerHTML = t3.toFixed(2) + h;
+  document.getElementById("total4-display").innerHTML = t4.toFixed(2) + h;
   document.getElementById("sum1-display").textContent = t1.toFixed(2);
   document.getElementById("sum2-display").textContent = t2.toFixed(2);
   document.getElementById("sum3-display").textContent = t3.toFixed(2);
+  document.getElementById("sum4-display").textContent = t4.toFixed(2);
 }
 
 // 曜日別スケジュールデータ
@@ -565,28 +575,19 @@ function loadJidaiData() {
       }
       const r = res.record;
 
-      // ①②③合計（スプレッドシートから取得 or 再計算）
-      const t1 = r.total1 !== undefined && r.total1 !== ""
-        ? parseFloat(r.total1) || 0
-        : GROUP1_FIELDS.reduce((s,k) => s+(parseFloat(r[k])||0), 0);
-      const t2 = r.total2 !== undefined && r.total2 !== ""
-        ? parseFloat(r.total2) || 0
-        : t1 + (parseFloat(r.herb)||0) + (parseFloat(r.daishobuhan)||0);
-      const t3 = r.total3 !== undefined && r.total3 !== ""
-        ? parseFloat(r.total3) || 0
-        : t2 + EXTRA_FIELDS.reduce((s,k) => s+(parseFloat(r[k])||0), 0);
+      // ①②③④合計（スプレッドシートから取得 or フォールバック計算）
+      const g = (key, fallback) => r[key] !== undefined && r[key] !== "" ? parseFloat(r[key])||0 : fallback;
+      const t1 = g("total1", GROUP1_FIELDS.reduce((s,k)=>s+(parseFloat(r[k])||0),0));
+      const t2 = g("total2", t1 + (parseFloat(r.gyomu_gai)||0));
+      const t3 = g("total3", GROUP3_FIELDS.reduce((s,k)=>s+(parseFloat(r[k])||0),0));
+      const t4 = g("total4", GROUP4_FIELDS.reduce((s,k)=>s+(parseFloat(r[k])||0),0));
 
-      // ①グループ行（ばんから〜Azizm深夜）
-      const g1Keys = ["bankara","mensyoku","kagetsu","jjtofu","azizm_day","azizm_night"];
-      const g1Rows = g1Keys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===g1Keys.length-1)).join("");
-
-      // 追加業態行（ハーブ・大庄物販）
-      const g2Keys = ["herb","daishobuhan"];
-      const g2Rows = g2Keys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===g2Keys.length-1)).join("");
-
-      // ③グループ行（業務外・大和家別）
-      const exKeys = ["gyomu_gai","yamato"];
-      const exRows = exKeys.map((k,i) => makeDataRow(k, GYOTAI_LABELS[k], r, i===exKeys.length-1)).join("");
+      const g1Rows = ["bankara","mensyoku","kagetsu","jjtofu"]
+        .map((k,i,a) => makeDataRow(k, GYOTAI_LABELS[k], r, i===a.length-1)).join("");
+      const g3Rows = ["azizm_day","azizm_night","yamato"]
+        .map((k,i,a) => makeDataRow(k, GYOTAI_LABELS[k], r, i===a.length-1)).join("");
+      const g4Rows = ["herb","daishobuhan"]
+        .map((k,i,a) => makeDataRow(k, GYOTAI_LABELS[k], r, i===a.length-1)).join("");
 
       result.innerHTML = `
         <div class="sec" style="padding:0;overflow:hidden;margin-bottom:12px">
@@ -596,24 +597,31 @@ function loadJidaiData() {
           </div>
 
           <!-- ①グループ -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.05em;background:rgba(200,151,58,.06)">① ばんから〜Azizm深夜</div>
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.05em;background:rgba(200,151,58,.06)">① ばんから・麵食・花月・東京純豆腐</div>
           <table style="width:100%;border-collapse:collapse">
             <tbody>${g1Rows}</tbody>
             ${makeTotalRow("①合計", t1, "var(--gold)")}
           </table>
 
-          <!-- 追加業態＋②合計 -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--grn);letter-spacing:.05em;background:rgba(46,201,138,.06);border-top:1px solid var(--bdr)">② ①＋ハーブ＋大庄物販</div>
+          <!-- 業務外時間＋②合計 -->
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--grn);letter-spacing:.05em;background:rgba(46,201,138,.06);border-top:1px solid var(--bdr)">② ①合計＋業務外時間</div>
           <table style="width:100%;border-collapse:collapse">
-            <tbody>${g2Rows}</tbody>
-            ${makeTotalRow("②合計（①＋ハーブ＋大庄物販）", t2, "var(--grn)")}
+            <tbody>${makeDataRow("gyomu_gai", GYOTAI_LABELS["gyomu_gai"], r, true)}</tbody>
+            ${makeTotalRow("②合計", t2, "var(--grn)")}
           </table>
 
           <!-- ③グループ -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--blu);letter-spacing:.05em;background:rgba(75,142,255,.06);border-top:1px solid var(--bdr)">③ ②＋業務外時間＋大和家別</div>
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:#9966FF;letter-spacing:.05em;background:rgba(153,102,255,.06);border-top:1px solid var(--bdr)">③ Azizm通常・Azizm深夜・大和家別</div>
           <table style="width:100%;border-collapse:collapse">
-            <tbody>${exRows}</tbody>
-            ${makeTotalRow("③合計（全体）", t3, "var(--blu)")}
+            <tbody>${g3Rows}</tbody>
+            ${makeTotalRow("③合計", t3, "#9966FF")}
+          </table>
+
+          <!-- ④グループ -->
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:#2EC9C0;letter-spacing:.05em;background:rgba(46,201,192,.06);border-top:1px solid var(--bdr)">④ ハーブ・大庄物販</div>
+          <table style="width:100%;border-collapse:collapse">
+            <tbody>${g4Rows}</tbody>
+            ${makeTotalRow("④合計", t4, "#2EC9C0")}
           </table>
 
           <div style="padding:10px 14px;font-size:10px;color:var(--tx3);text-align:right;border-top:1px solid var(--bdr)">更新：${r.timestamp || "—"}</div>
