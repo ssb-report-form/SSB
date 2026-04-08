@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <title>SSB 6業態人時入力フォーム</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -101,6 +102,7 @@ body{padding:0 0 80px}
   <div class="tab" onclick="switchTab('fix')">修正</div>
   <div class="tab" onclick="switchTab('schedule')">曜日別</div>
   <div class="tab" onclick="switchTab('data')">データ確認</div>
+  <div class="tab" onclick="switchTab('chart')">📊 グラフ</div>
 </div>
 
 <!-- ════════════════ 人時入力タブ ════════════════ -->
@@ -120,8 +122,9 @@ body{padding:0 0 80px}
     </div>
     <div class="form-block">
       <div class="form-label">入力者 <span class="req">必須</span></div>
-      <input id="i-reporter" type="text" class="form-input" placeholder="選択または入力" list="reporter-list" autocomplete="off">
-      <datalist id="reporter-list"></datalist>
+      <select id="i-reporter" class="form-input">
+        <option value="">-- 選択してください --</option>
+      </select>
     </div>
   </div>
 
@@ -271,8 +274,9 @@ body{padding:0 0 80px}
     </div>
     <div class="form-block">
       <div class="form-label">入力者 <span class="req">必須</span></div>
-      <input id="f-reporter" type="text" class="form-input" placeholder="選択または入力" list="reporter-list-f" autocomplete="off">
-      <datalist id="reporter-list-f"></datalist>
+      <select id="f-reporter" class="form-input">
+        <option value="">-- 選択してください --</option>
+      </select>
     </div>
   </div>
 
@@ -416,6 +420,27 @@ body{padding:0 0 80px}
 </div>
 </div>
 
+<!-- ════════════════ グラフタブ ════════════════ -->
+<div id="panel-chart" class="panel">
+<div class="wrap">
+
+  <div class="sec">
+    <div class="sec-title">生産性推移グラフ</div>
+    <div class="form-block" style="display:flex;gap:10px;align-items:center">
+      <input id="chart-month" type="month" class="form-input" style="flex:1">
+      <button onclick="loadChart()" style="background:var(--gold);color:#111;border:none;border-radius:var(--r);padding:10px 18px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap">表示</button>
+    </div>
+  </div>
+
+  <div class="sec" style="position:relative;width:100%;min-height:300px">
+    <canvas id="jidai-chart"></canvas>
+  </div>
+
+  <div id="chart-summary" style="margin-top:12px"></div>
+
+</div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -454,15 +479,17 @@ function loadReporters() {
     .then(r => r.json())
     .then(res => {
       const list = res.reporters || [];
-      const opts = list.map(name => `<option value="${name}">`).join("");
-      const dl1 = document.getElementById("reporter-list");
-      if (dl1) dl1.innerHTML = opts;
-      const dl2 = document.getElementById("reporter-list-f");
-      if (dl2) dl2.innerHTML = opts;
+      const opts = list.map(name => `<option value="${name}">${name}</option>`).join("");
+      ["i-reporter", "f-reporter"].forEach(id => {
+        const sel = document.getElementById(id);
+        if (sel) {
+          const saved = sel.value;
+          sel.innerHTML = '<option value="">-- 選択してください --</option>' + opts;
+          if (saved) sel.value = saved;
+        }
+      });
     })
-    .catch(() => {
-      // テキスト入力なので手動入力で代替可能。何もしない。
-    });
+    .catch(() => {});
 }
 
 function updateTotals() {
@@ -509,7 +536,7 @@ function buildScheduleTable() {
 }
 
 function switchTab(tab) {
-  const tabs   = ["input","fix","schedule","data"];
+  const tabs   = ["input","fix","schedule","data","chart"];
   document.querySelectorAll(".tab").forEach((t, i) => {
     t.classList.toggle("on", tabs[i] === tab);
   });
@@ -518,6 +545,14 @@ function switchTab(tab) {
     if (el) el.classList.toggle("on", id === tab);
   });
   if (tab === "schedule") buildScheduleTable();
+  if (tab === "chart") {
+    const cm = document.getElementById("chart-month");
+    if (!cm.value) {
+      const d = new Date();
+      cm.value = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+    }
+    loadChart();
+  }
   if (tab === "data") {
     const d = new Date();
     const today = d.getFullYear() + "-"
@@ -552,6 +587,106 @@ function makeTotalRow(label, val, color) {
     <td style="padding:11px 12px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:${color}">${val.toFixed(2)}</td>
     <td style="padding:11px 12px;font-size:11px;color:var(--tx3);text-align:right">h</td>
   </tr>`;
+}
+
+// ════════════════ グラフ ════════════════
+let jidaiChart = null;
+
+function loadChart() {
+  const month = document.getElementById("chart-month").value;
+  if (!month) { showToast("⚠ 月を選択してください","err"); return; }
+
+  const summary = document.getElementById("chart-summary");
+  summary.innerHTML = '<div style="text-align:center;padding:24px;color:var(--tx3);font-size:13px">読込中...</div>';
+
+  fetch(GAS_URL + "?action=get_jidai_chart&month=" + month)
+    .then(r => r.json())
+    .then(res => {
+      const records = res.records || [];
+      if (records.length === 0) {
+        summary.innerHTML = '<div style="text-align:center;padding:24px;color:var(--tx2);font-size:13px">データがありません</div>';
+        if (jidaiChart) { jidaiChart.destroy(); jidaiChart = null; }
+        return;
+      }
+
+      const labels = records.map(r => {
+        const d = r.date || "";
+        return d.length >= 10 ? d.substring(5) : d;  // "04-01" 形式
+      });
+
+      const series = [
+        { key: "bankara",  label: "ばんから",     color: "#E8B550" },
+        { key: "mensyoku", label: "麺食",         color: "#4B8EFF" },
+        { key: "kagetsu",  label: "花月",         color: "#2EC98A" },
+        { key: "jjtofu",   label: "東京純豆腐",   color: "#E05565" },
+      ];
+
+      const datasets = series.map(s => ({
+        label: s.label,
+        data: records.map(r => parseFloat(r[s.key]) || 0),
+        borderColor: s.color,
+        backgroundColor: s.color + "22",
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.3,
+        fill: false
+      }));
+
+      const ctx = document.getElementById("jidai-chart").getContext("2d");
+      if (jidaiChart) jidaiChart.destroy();
+
+      jidaiChart = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { color: "#dde6f4", font: { size: 11 }, padding: 12, usePointStyle: true }
+            },
+            tooltip: {
+              callbacks: {
+                label: ctx => ctx.dataset.label + ": " + ctx.parsed.y.toFixed(2) + "h"
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#7a96b8", font: { size: 10 } },
+              grid: { color: "rgba(255,255,255,0.06)" }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: "#7a96b8", font: { size: 10 }, callback: v => v + "h" },
+              grid: { color: "rgba(255,255,255,0.06)" }
+            }
+          }
+        }
+      });
+
+      // サマリー表示
+      const totals = {};
+      series.forEach(s => {
+        totals[s.label] = records.reduce((sum, r) => sum + (parseFloat(r[s.key]) || 0), 0);
+      });
+      const grand = Object.values(totals).reduce((a, b) => a + b, 0);
+      summary.innerHTML = '<div style="padding:12px;background:var(--s2);border-radius:var(--r);border:1px solid var(--bdr)">'
+        + '<div style="font-size:11px;color:var(--tx3);margin-bottom:8px">月間合計</div>'
+        + series.map(s =>
+            `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">`
+            + `<span style="color:${s.color}">● ${s.label}</span>`
+            + `<span style="color:var(--tx);font-family:'JetBrains Mono',monospace">${totals[s.label].toFixed(1)}h</span></div>`
+          ).join("")
+        + `<div style="border-top:1px solid var(--bdr);margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-weight:700;font-size:13px">`
+        + `<span style="color:var(--gold)">合計</span>`
+        + `<span style="color:var(--gold);font-family:'JetBrains Mono',monospace">${grand.toFixed(1)}h</span></div>`
+        + '</div>';
+    })
+    .catch(err => {
+      summary.innerHTML = '<div style="text-align:center;padding:24px;color:var(--red);font-size:13px">読込エラー: ' + err.message + '</div>';
+    });
 }
 
 function loadJidaiData() {
