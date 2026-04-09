@@ -99,7 +99,6 @@ body{padding:0 0 80px}
 
 <div class="tab-wrap">
   <div class="tab on" onclick="switchTab('input')">人時入力</div>
-  <div class="tab" onclick="switchTab('fix')">修正</div>
   <div class="tab" onclick="switchTab('schedule')">曜日別</div>
   <div class="tab" onclick="switchTab('data')">データ確認</div>
   <div class="tab" onclick="switchTab('chart')">📊 グラフ</div>
@@ -111,6 +110,10 @@ body{padding:0 0 80px}
 
   <div class="deadline-banner">
     ⏰ 当日分を当日中に入力してください（翌日8:30まで）
+  </div>
+
+  <div class="correction-note">
+    ✏️ 修正する場合は、修正する業態だけ入力してください。<br>空白のままの項目は<strong>変更されません</strong>。
   </div>
 
   <!-- 日付 -->
@@ -253,110 +256,6 @@ body{padding:0 0 80px}
 
   <button id="send-btn-i" class="send-btn" onclick="sendJidai('input')">
     <span id="send-txt-i">⏱ 人時データを送信する</span>
-  </button>
-
-</div>
-</div>
-
-<!-- ════════════════ 修正タブ ════════════════ -->
-<div id="panel-fix" class="panel">
-<div class="wrap">
-
-  <div class="correction-note">
-    ✏️ 修正する業態だけ入力してください。<br>空白のままの項目は<strong>変更されません</strong>。
-  </div>
-
-  <div class="sec">
-    <div class="sec-title">基本情報</div>
-    <div class="form-block">
-      <div class="form-label">対象日付（修正対象） <span class="req">必須</span></div>
-      <input id="f-date" type="date" class="form-input">
-    </div>
-    <div class="form-block">
-      <div class="form-label">入力者 <span class="req">必須</span></div>
-      <select id="f-reporter" class="form-input">
-        <option value="">-- 選択してください --</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- ① ばんから〜東京純豆腐（修正） -->
-  <div class="sec">
-    <div class="sec-title">① ばんから・麵食・花月・東京純豆腐（修正）</div>
-    <div class="gyotai-grid">
-      <div class="gyotai-card">
-        <div class="gyotai-name">ばんから</div>
-        <input id="f-bankara" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-      <div class="gyotai-card">
-        <div class="gyotai-name">麵食</div>
-        <input id="f-mensyoku" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-      <div class="gyotai-card">
-        <div class="gyotai-name">花月</div>
-        <input id="f-kagetsu" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-      <div class="gyotai-card">
-        <div class="gyotai-name">東京純豆腐</div>
-        <input id="f-jjtofu" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 業務外時間（修正） -->
-  <div class="sec">
-    <div class="sec-title">業務外時間（修正）</div>
-    <div class="form-block">
-      <div class="form-label">業務外時間 <span class="opt">修正時のみ</span> <span class="unit">h</span></div>
-      <input id="f-gyomu_gai" type="number" step="0.01" min="0" class="form-input" placeholder="空白=変更なし">
-    </div>
-  </div>
-
-  <!-- ③ Azizm・大和家別（修正） -->
-  <div class="sec">
-    <div class="sec-title">③ Azizm通常・Azizm深夜・大和家別（修正）</div>
-    <div class="gyotai-grid">
-      <div class="gyotai-card">
-        <div class="gyotai-name">Azizm通常</div>
-        <input id="f-azizm_day" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-      <div class="gyotai-card">
-        <div class="gyotai-name">Azizm深夜</div>
-        <input id="f-azizm_night" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-      <div class="gyotai-card" style="grid-column:1/-1">
-        <div class="gyotai-name">大和家別</div>
-        <input id="f-yamato" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし" style="max-width:200px">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ④ ハーブ・大庄物販（修正） -->
-  <div class="sec">
-    <div class="sec-title">④ ハーブ・大庄物販（修正）</div>
-    <div class="gyotai-grid">
-      <div class="gyotai-card">
-        <div class="gyotai-name">ハーブ</div>
-        <input id="f-herb" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-      <div class="gyotai-card">
-        <div class="gyotai-name">大庄物販</div>
-        <input id="f-daishobuhan" type="number" step="0.01" min="0" class="gyotai-input" placeholder="空白=変更なし">
-        <div class="gyotai-unit">時間（h）</div>
-      </div>
-    </div>
-  </div>
-
-  <button id="send-btn-f" class="send-btn" onclick="sendJidai('fix')">
-    <span id="send-txt-f">✏️ 修正データを送信する</span>
   </button>
 
 </div>
@@ -536,7 +435,7 @@ function buildScheduleTable() {
 }
 
 function switchTab(tab) {
-  const tabs   = ["input","fix","schedule","data","chart"];
+  const tabs   = ["input","schedule","data","chart"];
   document.querySelectorAll(".tab").forEach((t, i) => {
     t.classList.toggle("on", tabs[i] === tab);
   });
