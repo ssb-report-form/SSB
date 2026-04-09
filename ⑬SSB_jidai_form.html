@@ -360,7 +360,6 @@ const ALL_FIELDS    = [...GROUP1_FIELDS, "gyomu_gai", ...GROUP3_FIELDS, ...GROUP
     + String(d.getMonth()+1).padStart(2,"0") + "-"
     + String(d.getDate()).padStart(2,"0");
   document.getElementById("i-date").value = today;
-  document.getElementById("f-date").value = today;
 
   // 合計リアルタイム計算（全フィールドを監視）
   ALL_FIELDS.forEach(f => {
@@ -379,7 +378,7 @@ function loadReporters() {
     .then(res => {
       const list = res.reporters || [];
       const opts = list.map(name => `<option value="${name}">${name}</option>`).join("");
-      ["i-reporter", "f-reporter"].forEach(id => {
+      ["i-reporter"].forEach(id => {
         const sel = document.getElementById(id);
         if (sel) {
           const saved = sel.value;
@@ -410,7 +409,7 @@ function updateTotals() {
 }
 
 // 曜日別スケジュールデータ
-const SCHEDULE = [
+var SCHEDULE = [
   { name: "ばんから",  days: [0,1,0,1,0,1,0] },
   { name: "麵食",      days: [1,1,1,1,1,1,0] },
   { name: "花月",      days: [1,1,0,1,1,1,0] },
