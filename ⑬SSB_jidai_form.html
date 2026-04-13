@@ -615,7 +615,7 @@ function loadJidaiData() {
       const t4 = g("total4", GROUP4_FIELDS.reduce((s,k)=>s+(parseFloat(r[k])||0),0));
 
       const g1Rows = ["bankara","mensyoku","kagetsu","jjtofu"]
-        .map((k,i,a) => makeDataRow(k, GYOTAI_LABELS[k], r, i===a.length-1)).join("");
+        .map((k,i,a) => makeDataRow(k+"_full", GYOTAI_LABELS[k], r, i===a.length-1)).join("");
       const g3Rows = ["azizm_day","azizm_night","yamato"]
         .map((k,i,a) => makeDataRow(k, GYOTAI_LABELS[k], r, i===a.length-1)).join("");
       const g4Rows = ["herb","daishobuhan"]
@@ -629,31 +629,24 @@ function loadJidaiData() {
           </div>
 
           <!-- ①グループ -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.05em;background:rgba(200,151,58,.06)">① ばんから・麵食・花月・東京純豆腐</div>
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.05em;background:rgba(200,151,58,.06)">① ばんから・麵食・花月・東京純豆腐　<span style="font-weight:400;color:var(--tx3)">※業務外時間振り分け済みです。</span></div>
           <table style="width:100%;border-collapse:collapse">
             <tbody>${g1Rows}</tbody>
             ${makeTotalRow("①合計", t1, "var(--gold)")}
           </table>
 
-          <!-- 業務外時間＋②合計 -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:var(--grn);letter-spacing:.05em;background:rgba(46,201,138,.06);border-top:1px solid var(--bdr)">② ①合計＋業務外時間</div>
+          <!-- ②グループ -->
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:#9966FF;letter-spacing:.05em;background:rgba(153,102,255,.06);border-top:1px solid var(--bdr)">② Azizm通常・Azizm深夜・大和家別</div>
           <table style="width:100%;border-collapse:collapse">
-            <tbody>${makeDataRow("gyomu_gai", GYOTAI_LABELS["gyomu_gai"], r, true)}</tbody>
-            ${makeTotalRow("②合計", t2, "var(--grn)")}
+            <tbody>${g3Rows}</tbody>
+            ${makeTotalRow("②合計", t3, "#9966FF")}
           </table>
 
           <!-- ③グループ -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:#9966FF;letter-spacing:.05em;background:rgba(153,102,255,.06);border-top:1px solid var(--bdr)">③ Azizm通常・Azizm深夜・大和家別</div>
-          <table style="width:100%;border-collapse:collapse">
-            <tbody>${g3Rows}</tbody>
-            ${makeTotalRow("③合計", t3, "#9966FF")}
-          </table>
-
-          <!-- ④グループ -->
-          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:#2EC9C0;letter-spacing:.05em;background:rgba(46,201,192,.06);border-top:1px solid var(--bdr)">④ ハーブ・大庄物販</div>
+          <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:#2EC9C0;letter-spacing:.05em;background:rgba(46,201,192,.06);border-top:1px solid var(--bdr)">③ ハーブ・大庄物販</div>
           <table style="width:100%;border-collapse:collapse">
             <tbody>${g4Rows}</tbody>
-            ${makeTotalRow("④合計", t4, "#2EC9C0")}
+            ${makeTotalRow("③合計", t4, "#2EC9C0")}
           </table>
 
           <div style="padding:10px 14px;font-size:10px;color:var(--tx3);text-align:right;border-top:1px solid var(--bdr)">更新：${r.timestamp || "—"}</div>
